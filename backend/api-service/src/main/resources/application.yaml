@@ -1,0 +1,25 @@
+spring:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+  liquibase:
+    default-schema: scheduler
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+  application:
+    name: api-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/scheduler
+    username: user
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Prevent Hibernate from modifying schema
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+#  flyway:
+#    enabled: true
+#    baseline-on-migrate: true
+
+

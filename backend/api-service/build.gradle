@@ -40,3 +40,9 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+tasks.wrapper {
+	gradleVersion = "8.12.1"
+	distributionType = Wrapper.DistributionType.ALL
+}
+

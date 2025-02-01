@@ -1,3 +1,4 @@
+
 -- Users Table
 CREATE TABLE scheduler.users
 (

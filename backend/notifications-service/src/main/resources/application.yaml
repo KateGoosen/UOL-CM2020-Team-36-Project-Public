@@ -1,0 +1,30 @@
+spring:
+  liquibase:
+    default-schema: audit
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+  datasource:
+    url: jdbc:postgresql://localhost:5432/scheduler
+    username: user
+    password: password
+    driver-class-name: org.postgresql.Driver
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: 'syncify.tool@gmail.com'
+    password: 'bngn yeyc fbzv nalo'
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+logging:
+  level:
+    root: INFO
+    org.springframework.mail: DEBUG
+    org.apache.commons.mail: DEBUG

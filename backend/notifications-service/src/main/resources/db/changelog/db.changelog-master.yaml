@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: Ekaterina Goosen
+      changes:
+        - sqlFile:
+            path: classpath:/db/migration/V1_Create_Table.sql
+            relativeToChangelogFile: false

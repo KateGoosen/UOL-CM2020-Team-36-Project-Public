@@ -2,14 +2,42 @@ import React, { useState } from "react";
 import {
   Card,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/shadcdn/ui/card";
 import AvailabilityTable from "@/components/home/AvailabilityTable";
+import { Button } from "@/components/shadcdn/ui/button";
+
+export interface SelectedSlot {
+  day: string;
+  hour: number;
+  period: string;
+}
+
+export interface MarkedSlot {
+  day: string;
+  hour: number;
+  period: string;
+  availabilityType: "available" | "mostly-available";
+}
 
 const Home = () => {
-  const [availabilitySelection, setAvailabilitySelection] =
-    useState("available");
+  const [availabilitySelection, setAvailabilitySelection] = useState<
+    "available" | "mostly-available"
+  >("available");
+  const [selectedSlots, setSelectedSlots] = useState<SelectedSlot[]>([]);
+  const [markedSlots, setMarkedSlots] = useState<MarkedSlot[]>([]);
+
+  const handleMarkSelectedSlots = () => {
+    setMarkedSlots([
+      ...markedSlots,
+      ...selectedSlots.map((sl) => {
+        return { ...sl, availabilityType: availabilitySelection };
+      }),
+    ]);
+    setSelectedSlots([]);
+  };
 
   return (
     <div>
@@ -36,12 +64,16 @@ const Home = () => {
             </CardHeader>
           </Card>
         </div>
-        <p className='text-black font-light mt-[72px] text-2xl'>
+        <p className='text-black font-light mt-[72px] text-2xl mb-8'>
           My availability
         </p>
-        <div className='flex flex-row justify-around pb-[100px]'>
-          <AvailabilityTable />
-          <Card className='bg-white border border-black h-[400px] ml-[50px]'>
+        <div className='flex flex-row justify-between pb-[100px]'>
+          <AvailabilityTable
+            selectedSlots={selectedSlots}
+            setSelectedSlots={setSelectedSlots}
+            markedSlots={markedSlots}
+          />
+          <Card className='bg-white border border-black h-[350px] ml-[50px] fixed right-[50px]'>
             <CardHeader>
               <CardTitle className='text-xl'>Set Availability</CardTitle>
               <CardDescription>
@@ -70,6 +102,14 @@ const Home = () => {
                   />
                 </div>
               </CardDescription>
+              <CardFooter style={{ marginTop: 50 }}>
+                <Button
+                  className='bg-primary w-full self-center'
+                  onClick={handleMarkSelectedSlots}
+                >
+                  Mark Selection
+                </Button>
+              </CardFooter>
             </CardHeader>
           </Card>
         </div>

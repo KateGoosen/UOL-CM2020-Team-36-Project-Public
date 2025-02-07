@@ -39,6 +39,21 @@ const Home = () => {
     setSelectedSlots([]);
   };
 
+  const handleUnmarkSelectedSlots = () => {
+    setMarkedSlots(
+      markedSlots.filter(
+        (ms) =>
+          !selectedSlots.some(
+            (sl) =>
+              sl.day === ms.day &&
+              sl.hour === ms.hour &&
+              sl.period === ms.period
+          )
+      )
+    );
+    setSelectedSlots([]);
+  };
+
   return (
     <div>
       <div className='bg-primary h-[80px] w-full pl-[50px] flex flex-row items-center'>
@@ -102,12 +117,23 @@ const Home = () => {
                   />
                 </div>
               </CardDescription>
-              <CardFooter style={{ marginTop: 50 }}>
+              <CardFooter
+                style={{
+                  marginTop: 50,
+                  gap: 24,
+                }}
+              >
                 <Button
-                  className='bg-primary w-full self-center'
+                  className='bg-primary flex-1 self-center'
                   onClick={handleMarkSelectedSlots}
                 >
-                  Mark Selection
+                  Mark selection
+                </Button>
+                <Button
+                  className='bg-red-400 flex-1 self-center hover:bg-red-600'
+                  onClick={handleUnmarkSelectedSlots}
+                >
+                  Unmark selection
                 </Button>
               </CardFooter>
             </CardHeader>

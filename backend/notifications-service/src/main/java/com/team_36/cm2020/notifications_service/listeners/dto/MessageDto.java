@@ -1,4 +1,4 @@
-package com.team_36.cm2020.notifications_service.listeners;
+package com.team_36.cm2020.notifications_service.listeners.dto;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;

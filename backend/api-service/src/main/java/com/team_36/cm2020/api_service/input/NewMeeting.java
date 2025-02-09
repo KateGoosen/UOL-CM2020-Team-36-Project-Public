@@ -2,10 +2,12 @@ package com.team_36.cm2020.api_service.input;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import lombok.Getter;
 
 import java.util.List;
 
 @Data
+@Getter
 public class NewMeeting {
 
     @NotBlank(message = "Title is required")
@@ -42,6 +44,7 @@ public class NewMeeting {
 
     // Inner class for participants
     @Data
+    @Getter
     public static class Participant {
         @NotBlank(message = "Participant name is required")
         private String name;

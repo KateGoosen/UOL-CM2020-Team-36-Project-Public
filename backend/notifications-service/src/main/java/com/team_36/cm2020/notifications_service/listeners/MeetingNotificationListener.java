@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.team_36.cm2020.notifications_service.entities.Notification;
+import com.team_36.cm2020.notifications_service.listeners.dto.MessageDto;
 import com.team_36.cm2020.notifications_service.service.NotificationService;
 import lombok.AllArgsConstructor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

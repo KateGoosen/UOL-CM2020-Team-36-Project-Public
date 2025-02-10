@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -31,6 +32,8 @@ public class NewMeeting {
 
     @NotBlank(message = "Timezone is required")
     private String timezone;
+
+    private LocalDateTime votingDeadline;
 
     @Data
     public static class DateOption {

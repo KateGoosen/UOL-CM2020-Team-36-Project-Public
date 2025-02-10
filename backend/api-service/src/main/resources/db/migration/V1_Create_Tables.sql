@@ -23,7 +23,8 @@ CREATE TABLE scheduler.meetings
     date_time_to_delete TIMESTAMP    NOT NULL,
     organizer_token     UUID         NOT NULL,
     is_voting_opened    BOOLEAN      NOT NULL,
-    final_time_slot     TIMESTAMP
+    final_time_slot     TIMESTAMP,
+    voting_deadline     TIMESTAMP
 );
 
 -- Votes Table

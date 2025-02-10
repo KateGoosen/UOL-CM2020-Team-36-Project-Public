@@ -1,13 +1,17 @@
 package com.team_36.cm2020.notifications_service.config;
 
-import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.Queue;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@AllArgsConstructor
 public class RabbitMQConfig {
 
     // Define Exchange Names
@@ -29,6 +33,7 @@ public class RabbitMQConfig {
     private static final String AUTH_SIGNUP_SUCCESS = "auth_signup_success";
     private static final String AUTH_LOGIN_CONFIRMATION_CODE = "auth_login_confirmation_code";
     private static final String AUTH_PASSWORD_RESET = "auth_password_reset";
+    private static final String LINK_RESTORE_ORGANIZER = "link_restore_organizer";
 
     // Define Routing Keys
     private static final String MEETING_CREATED_ORGANIZER_KEY = "meeting.created.organizer";
@@ -44,9 +49,10 @@ public class RabbitMQConfig {
     private static final String AUTH_SIGNUP_SUCCESS_KEY = "auth.signup.success";
     private static final String AUTH_LOGIN_CONFIRMATION_CODE_KEY = "auth.login.confirmation_code";
     private static final String AUTH_PASSWORD_RESET_KEY = "auth.password.reset";
+    private static final String LINK_RESTORE_ORGANIZER_KEY = "link.restore.organizer";
 
-    @Autowired
-    private AmqpAdmin amqpAdmin;
+
+    private final AmqpAdmin amqpAdmin;
 
     // Define Exchanges
     @Bean
@@ -130,6 +136,11 @@ public class RabbitMQConfig {
         return new Queue(AUTH_PASSWORD_RESET, true);
     }
 
+    @Bean
+    public Queue linkRestoreOrganizerQueue() {
+        return new Queue(LINK_RESTORE_ORGANIZER, true);
+    }
+
     // Bindings (Queue to Exchange)
     @Bean
     public Binding bindMeetingCreatedOrganizer() {
@@ -197,6 +208,11 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Binding bindLinkRestoreOrganizer() {
+        return BindingBuilder.bind(linkRestoreOrganizerQueue()).to(meetingExchange()).with(LINK_RESTORE_ORGANIZER_KEY);
+    }
+
+    @Bean
     public ApplicationRunner initializer() {
         return args -> {
             amqpAdmin.declareExchange(meetingExchange());
@@ -216,6 +232,7 @@ public class RabbitMQConfig {
             amqpAdmin.declareQueue(authSignupSuccessQueue());
             amqpAdmin.declareQueue(authLoginConfirmationCodeQueue());
             amqpAdmin.declareQueue(authPasswordResetQueue());
+            amqpAdmin.declareQueue(linkRestoreOrganizerQueue());
 
             System.out.println("RabbitMQ: All exchanges and queues have been initialized.");
         };

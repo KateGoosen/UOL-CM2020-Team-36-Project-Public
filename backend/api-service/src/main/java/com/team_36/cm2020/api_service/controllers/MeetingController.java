@@ -5,7 +5,9 @@ import com.team_36.cm2020.api_service.input.NewMeeting;
 import com.team_36.cm2020.api_service.input.VoteInput;
 import com.team_36.cm2020.api_service.output.CreateMeetingResponse;
 import com.team_36.cm2020.api_service.output.GetMeetingForOrganizerResponse;
+import com.team_36.cm2020.api_service.output.MeetingDataForParticipantResponse;
 import com.team_36.cm2020.api_service.service.MeetingService;
+import com.team_36.cm2020.api_service.service.NotificationService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -27,6 +31,7 @@ import java.util.UUID;
 public class MeetingController {
 
     private final MeetingService meetingService;
+
 
     @PostMapping("/new")
     public ResponseEntity<CreateMeetingResponse> createMeeting(@RequestBody NewMeeting meetingData) {
@@ -71,4 +76,22 @@ public class MeetingController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/{user_email}")
+    public ResponseEntity<Set<MeetingDataForParticipantResponse>> getMeetingsByEmail(@PathVariable(name = "user_email") String userEmail){
+        Set<MeetingDataForParticipantResponse> response = meetingService.getMeetingsByEmail(userEmail);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("/restore_edit_link/{meeting_id}")
+    public ResponseEntity<Void> restoreEditLink(@PathVariable(name = "meeting_id") UUID meetingId){
+        meetingService.restoreEditLink(meetingId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/participant/{meeting_id}/{user_email}")
+    public ResponseEntity<MeetingDataForParticipantResponse> viewMeetingDetailsByParticipant(@PathVariable(name = "meeting_id") UUID meetingId,
+                                                                @PathVariable(name = "user_email") String userEmail){
+        meetingService.viewMeetingDetailsByParticipant(meetingId, userEmail);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -3,6 +3,7 @@ package com.team_36.cm2020.api_service.controllers;
 import com.team_36.cm2020.api_service.exceptions.NoMeetingFoundException;
 import com.team_36.cm2020.api_service.exceptions.NoPrivilegeToAccessException;
 import com.team_36.cm2020.api_service.exceptions.NoUserFoundException;
+import com.team_36.cm2020.api_service.exceptions.UserIsNotParticipantOfTheMeetingException;
 import com.team_36.cm2020.api_service.exceptions.VotingIsClosedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,5 +37,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
+    @ExceptionHandler(UserIsNotParticipantOfTheMeetingException.class)
+    public ResponseEntity<String> handleUserIsNotParticipantOfTheMeetingException(UserIsNotParticipantOfTheMeetingException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
 
 }

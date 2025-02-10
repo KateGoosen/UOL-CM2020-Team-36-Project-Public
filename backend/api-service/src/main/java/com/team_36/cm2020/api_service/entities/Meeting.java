@@ -68,5 +68,8 @@ public class Meeting {
     @Column
     private LocalDateTime finalTimeSlot;
 
+    @Column
+    private LocalDateTime votingDeadline;
+
 }
 

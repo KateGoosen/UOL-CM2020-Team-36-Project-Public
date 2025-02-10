@@ -25,7 +25,7 @@ public class MeetingNotificationListener {
                 messageDto.getMeetingTitle(),
                 messageDto.getMeetingId(),
                 messageDto.getUserId(),
-                messageDto.getCreatorToken());
+                messageDto.getOrganizerToken());
         sendEmailAndWriteLog(messageDto, emailText, "New Meeting Created");
     }
 
@@ -48,7 +48,7 @@ public class MeetingNotificationListener {
                 messageDto.getMeetingTitle(),
                 messageDto.getMeetingId(),
                 messageDto.getUserId(),
-                messageDto.getCreatorToken());
+                messageDto.getOrganizerToken());
         sendEmailAndWriteLog(messageDto, emailText, "Vote Registered");
     }
 
@@ -71,7 +71,7 @@ public class MeetingNotificationListener {
                 messageDto.getMeetingDateTime(),
                 messageDto.getMeetingId(),
                 messageDto.getUserId(),
-                messageDto.getCreatorToken());
+                messageDto.getOrganizerToken());
         sendEmailAndWriteLog(messageDto, emailText, "Meeting Time Finalized");
     }
 
@@ -83,7 +83,7 @@ public class MeetingNotificationListener {
                 messageDto.getMeetingTitle(),
                 messageDto.getMeetingId(),
                 messageDto.getUserId(),
-                messageDto.getCreatorToken());
+                messageDto.getOrganizerToken());
         sendEmailAndWriteLog(messageDto, emailText, "No Suitable Time Slots");
     }
 

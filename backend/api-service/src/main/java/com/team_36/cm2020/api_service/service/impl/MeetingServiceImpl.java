@@ -1,13 +1,15 @@
-package com.team_36.cm2020.api_service.service;
+package com.team_36.cm2020.api_service.service.impl;
 
 import com.team_36.cm2020.api_service.entities.Meeting;
 import com.team_36.cm2020.api_service.entities.MeetingParticipant;
 import com.team_36.cm2020.api_service.entities.MeetingParticipantId;
 import com.team_36.cm2020.api_service.entities.User;
 import com.team_36.cm2020.api_service.entities.Vote;
+import com.team_36.cm2020.api_service.enums.UserType;
 import com.team_36.cm2020.api_service.exceptions.NoMeetingFoundException;
 import com.team_36.cm2020.api_service.exceptions.NoPrivilegeToAccessException;
 import com.team_36.cm2020.api_service.exceptions.NoUserFoundException;
+import com.team_36.cm2020.api_service.exceptions.UserIsNotParticipantOfTheMeetingException;
 import com.team_36.cm2020.api_service.exceptions.VotingIsClosedException;
 import com.team_36.cm2020.api_service.input.FinalizeMeetingInput;
 import com.team_36.cm2020.api_service.input.NewMeeting;
@@ -15,11 +17,15 @@ import com.team_36.cm2020.api_service.input.VoteInput;
 import com.team_36.cm2020.api_service.messaging.RabbitMQProducer;
 import com.team_36.cm2020.api_service.output.CreateMeetingResponse;
 import com.team_36.cm2020.api_service.output.GetMeetingForOrganizerResponse;
+import com.team_36.cm2020.api_service.output.MeetingDataForParticipantResponse;
 import com.team_36.cm2020.api_service.output.ParticipantResponse;
 import com.team_36.cm2020.api_service.repositories.MeetingParticipantRepository;
 import com.team_36.cm2020.api_service.repositories.MeetingRepository;
 import com.team_36.cm2020.api_service.repositories.UserRepository;
 import com.team_36.cm2020.api_service.repositories.VoteRepository;
+import com.team_36.cm2020.api_service.rmq.NotificationMessage;
+import com.team_36.cm2020.api_service.service.MeetingService;
+import com.team_36.cm2020.api_service.service.NotificationService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +47,7 @@ import java.util.stream.Collectors;
 public class MeetingServiceImpl implements MeetingService {
 
     private final RabbitMQProducer rabbitMQProducer;
+    private final NotificationService notificationService;
 
     private final MeetingRepository meetingRepository;
     private final UserRepository userRepository;
@@ -62,6 +69,15 @@ public class MeetingServiceImpl implements MeetingService {
         }
 
         Meeting savedMeeting = saveMeeting(organizer, meetingData, participants, Optional.empty());
+
+        this.notificationService.sendNotificationNewMeetingOrganizer(
+                new NotificationMessage(organizer, savedMeeting, UserType.ORGANIZER, Optional.empty())
+        );
+        for (MeetingParticipant meetingParticipant : savedMeeting.getParticipants()) {
+            this.notificationService.sendNotificationNewMeetingParticipants(
+                    new NotificationMessage(meetingParticipant.getUser(), savedMeeting, UserType.PARTICIPANT, Optional.empty())
+            );
+        }
 
         log.debug("Finish creating new meeting");
         return new CreateMeetingResponse(savedMeeting.getOrganizerToken(), savedMeeting.getMeetingId());
@@ -148,8 +164,18 @@ public class MeetingServiceImpl implements MeetingService {
     @Transactional
     public void deleteMeeting(UUID meetingId, UUID organizerToken) {
         Meeting meeting = getMeetingIfExistsById(meetingId);
+        User organizer = meeting.getOrganizer();
         checkOrganizerToken(organizerToken, meeting);
         this.meetingRepository.deleteById(meetingId);
+        this.notificationService.sendNotificationMeetingDeleted(
+                NotificationMessage.builder()
+                        .userName(organizer.getName())
+                        .userId(organizer.getUserId())
+                        .userEmail(organizer.getEmail())
+                        .meetingTitle(meeting.getTitle())
+                        .meetingId(meeting.getMeetingId())
+                        .build()
+        );
     }
 
     @Override
@@ -162,6 +188,16 @@ public class MeetingServiceImpl implements MeetingService {
         meeting.setIsVotingOpened(false);
 
         this.meetingRepository.save(meeting);
+
+        this.notificationService.sendNotificationMeetingFinalizedOrganizer(
+                new NotificationMessage(meeting.getOrganizer(), meeting, UserType.ORGANIZER, Optional.empty())
+        );
+
+        for (MeetingParticipant meetingParticipant : meeting.getParticipants()) {
+            this.notificationService.sendNotificationMeetingFinalizedParticipants(
+                    new NotificationMessage(meetingParticipant.getUser(), meeting, UserType.PARTICIPANT, Optional.empty())
+            );
+        }
     }
 
     @Override
@@ -184,7 +220,65 @@ public class MeetingServiceImpl implements MeetingService {
 
         this.voteRepository.saveAll(votesToSave);
 
+        this.notificationService.sendNotificationVoteRegisteredOrganizer(
+                new NotificationMessage(meeting.getOrganizer(), meeting, UserType.ORGANIZER, Optional.empty())
+        );
+        this.notificationService.sendNotificationVoteRegisteredParticipant(
+                new NotificationMessage(user, meeting, UserType.PARTICIPANT, Optional.empty())
+        );
 
+    }
+
+    @Override
+    public Set<MeetingDataForParticipantResponse> getMeetingsByEmail(String userEmail) {
+        User user = getUserByEmail(userEmail);
+
+        Set<MeetingDataForParticipantResponse> response = this.meetingParticipantRepository.findAllByUser(user).stream()
+                .map(meetingParticipant -> {
+                    Meeting meeting = meetingParticipant.getMeeting();
+                    return MeetingDataForParticipantResponse.builder()
+                            .title(meeting.getTitle())
+                            .description(meeting.getDescription())
+                            .duration(meeting.getDuration())
+                            .isVotingOpened(meeting.getIsVotingOpened())
+                            .finalTimeSlot(meeting.getFinalTimeSlot())
+                            .build();
+                })
+                .collect(Collectors.toSet());
+
+        return response;
+    }
+
+    @Override
+    public void restoreEditLink(UUID meetingId) {
+        Meeting meeting = getMeetingIfExistsById(meetingId);
+
+        this.notificationService.sendNotificationLinkRestoreOrganizer(
+                new NotificationMessage(meeting.getOrganizer(), meeting, UserType.ORGANIZER, Optional.empty())
+        );
+    }
+
+    @Override
+    public MeetingDataForParticipantResponse viewMeetingDetailsByParticipant(UUID meetingId, String userEmail) {
+        Meeting meeting = getMeetingIfExistsById(meetingId);
+        User user = getUserByEmail(userEmail);
+
+
+        boolean userIsParticipantOfTheMeeting = meeting.getParticipants().stream()
+                .map(MeetingParticipant::getUser)
+                .anyMatch(participantUser -> participantUser.equals(user));
+
+        if (!userIsParticipantOfTheMeeting) {
+            throw new UserIsNotParticipantOfTheMeetingException(String.format("The user with email: %s is not the participant of the meeting with title: %s", userEmail, meeting.getTitle()));
+        }
+
+        return MeetingDataForParticipantResponse.builder()
+                .title(meeting.getTitle())
+                .description(meeting.getDescription())
+                .duration(meeting.getDuration())
+                .isVotingOpened(meeting.getIsVotingOpened())
+                .finalTimeSlot(meeting.getFinalTimeSlot())
+                .build();
     }
 
     private Set<Vote> createVotes(Set<LocalDateTime> timeSlots,
@@ -244,6 +338,7 @@ public class MeetingServiceImpl implements MeetingService {
             newMeeting.setDateTimeCreated(LocalDateTime.now());
             newMeeting.setOrganizerToken(UUID.randomUUID());
             newMeeting.setIsVotingOpened(true);
+            newMeeting.setVotingDeadline(meetingData.getVotingDeadline());
         }
 
 

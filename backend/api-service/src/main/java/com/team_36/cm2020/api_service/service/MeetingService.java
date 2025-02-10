@@ -5,7 +5,9 @@ import com.team_36.cm2020.api_service.input.NewMeeting;
 import com.team_36.cm2020.api_service.input.VoteInput;
 import com.team_36.cm2020.api_service.output.CreateMeetingResponse;
 import com.team_36.cm2020.api_service.output.GetMeetingForOrganizerResponse;
+import com.team_36.cm2020.api_service.output.MeetingDataForParticipantResponse;
 
+import java.util.Set;
 import java.util.UUID;
 
 public interface MeetingService {
@@ -59,4 +61,28 @@ public interface MeetingService {
      * @param voteInput {@link VoteInput}
      */
     void vote(UUID meetingId, VoteInput voteInput);
+
+    /**
+     * Get all available meetings by email (for participants)
+     *
+     * @param userEmail user's email
+     * @return set of {@link MeetingDataForParticipantResponse}
+     */
+    Set<MeetingDataForParticipantResponse> getMeetingsByEmail(String userEmail);
+
+    /**
+     * Restore link for manipulating the meeting (the link is sent to the organizer's email)
+     *
+     * @param meetingId meeting ID
+     */
+    void restoreEditLink(UUID meetingId);
+
+    /**
+     * View the meeting's details (for participant)
+     *
+     * @param meetingId meeting ID
+     * @param userEmail user email
+     * @return {@link MeetingDataForParticipantResponse}
+     */
+    MeetingDataForParticipantResponse viewMeetingDetailsByParticipant(UUID meetingId, String userEmail);
 }

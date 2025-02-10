@@ -3,7 +3,7 @@ package com.team_36.cm2020.notifications_service.entities;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.team_36.cm2020.notifications_service.listeners.MessageDto;
+import com.team_36.cm2020.notifications_service.listeners.dto.MessageDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

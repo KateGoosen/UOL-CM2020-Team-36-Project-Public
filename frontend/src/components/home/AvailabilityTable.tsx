@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import {
   MdArrowBackIos as MdArrowBack,
   MdArrowForwardIos as MdArrowForward,
@@ -10,11 +10,34 @@ import {
   differenceInMinutes,
   addWeeks,
 } from "date-fns";
+import { MarkedSlot, SelectedSlot } from "@/pages/Home";
 
-const AvailabilityTable = () => {
+interface AvailabilityTableProps {
+  selectedSlots: SelectedSlot[];
+  markedSlots: MarkedSlot[];
+  setSelectedSlots: (slots: SelectedSlot[]) => void;
+}
+
+const AvailabilityTable: FC<AvailabilityTableProps> = ({
+  selectedSlots,
+  setSelectedSlots,
+  markedSlots,
+}) => {
   const today = startOfToday();
   const [linePosition, setLinePosition] = useState(0);
   const [weekOffset, setWeekOffset] = useState(0);
+
+  const getColorForSlot = (isSelected: boolean, markedSlot?: MarkedSlot) => {
+    if (isSelected) {
+      return "bg-primary";
+    } else if (markedSlot) {
+      return markedSlot.availabilityType === "available"
+        ? "bg-secondary"
+        : "bg-mainYellow";
+    } else {
+      return "bg-white";
+    }
+  };
 
   const startOfCurrentWeek = addWeeks(today, weekOffset);
 
@@ -67,7 +90,7 @@ const AvailabilityTable = () => {
       </div>
       {/* WEEK DAYS */}
       <div className='flex flex-row'>
-        <div className='flex w-24' />{" "}
+        <div className='flex w-24 border-l border-gray-300 ' />
         {weekDays.map((day, index) => (
           <div
             key={index}
@@ -88,12 +111,59 @@ const AvailabilityTable = () => {
             </div>
 
             {/* 7 Empty slot rectangles */}
-            {weekDays.map((_, colIndex) => (
-              <div
-                key={colIndex}
-                className='flex flex-1 h-12 border border-gray-300 bg-white cursor-pointer hover:bg-gray-100'
-              />
-            ))}
+            {weekDays.map((_day, colIndex) => {
+              const period = rowIndex < 12 ? "am" : "pm";
+              const slot = {
+                day: format(
+                  addDays(startOfCurrentWeek, colIndex),
+                  "yyyy-MM-dd"
+                ),
+                hour: rowIndex % 12 === 0 ? 12 : rowIndex % 12,
+                period: period,
+              };
+
+              const isSelected = selectedSlots.some(
+                (s) =>
+                  s.day === slot.day &&
+                  s.hour === slot.hour &&
+                  s.period === slot.period
+              );
+
+              const isMarked = markedSlots.find(
+                (m) =>
+                  m.day === slot.day &&
+                  m.hour === slot.hour &&
+                  m.period === slot.period
+              );
+
+              return (
+                <div
+                  key={colIndex}
+                  className={`flex flex-1 h-12 border border-gray-400 cursor-pointer ${getColorForSlot(
+                    isSelected,
+                    isMarked
+                  )} hover:bg-gray-100`}
+                  onClick={() => {
+                    if (isSelected) {
+                      // Remove the slot if it's already selected
+                      setSelectedSlots(
+                        selectedSlots.filter(
+                          (s) =>
+                            !(
+                              s.day === slot.day &&
+                              s.hour === slot.hour &&
+                              s.period === slot.period
+                            )
+                        )
+                      );
+                    } else {
+                      // Add the slot if it's not selected
+                      setSelectedSlots([...selectedSlots, slot]);
+                    }
+                  }}
+                />
+              );
+            })}
           </div>
         ))}
         {/* Current Time Red Line, only show on the current week*/}

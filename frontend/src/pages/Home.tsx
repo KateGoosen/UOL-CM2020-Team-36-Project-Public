@@ -2,23 +2,78 @@ import React, { useState } from "react";
 import {
   Card,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/shadcdn/ui/card";
 import AvailabilityTable from "@/components/home/AvailabilityTable";
+import { Button } from "@/components/shadcdn/ui/button";
+import { useNavigate } from "react-router";
+import Header from "@/components/Header";
+
+export interface SelectedSlot {
+  day: string;
+  hour: number;
+  period: string;
+}
+
+export interface MarkedSlot {
+  day: string;
+  hour: number;
+  period: string;
+  availabilityType: "available" | "mostly-available";
+}
 
 const Home = () => {
-  const [availabilitySelection, setAvailabilitySelection] =
-    useState("available");
+  const [availabilitySelection, setAvailabilitySelection] = useState<
+    "available" | "mostly-available"
+  >("available");
+  const [selectedSlots, setSelectedSlots] = useState<SelectedSlot[]>([]);
+  const [markedSlots, setMarkedSlots] = useState<MarkedSlot[]>([]);
+  const navigate = useNavigate();
+
+  const handleMarkSelectedSlots = () => {
+    setMarkedSlots([
+      ...markedSlots,
+      ...selectedSlots.map((sl) => {
+        return { ...sl, availabilityType: availabilitySelection };
+      }),
+    ]);
+    setSelectedSlots([]);
+  };
+
+  const handleUnmarkSelectedSlots = () => {
+    setMarkedSlots(
+      markedSlots.filter(
+        (ms) =>
+          !selectedSlots.some(
+            (sl) =>
+              sl.day === ms.day &&
+              sl.hour === ms.hour &&
+              sl.period === ms.period
+          )
+      )
+    );
+    setSelectedSlots([]);
+  };
+
+  const handleScheduleMeeting = () => {
+    navigate("/schedule-meeting");
+  };
+
+  const handleShowScheduledMeetings = () => {
+    navigate("/view-scheduled-meetings");
+  };
 
   return (
     <div>
-      <div className='bg-primary h-[80px] w-full pl-[50px] flex flex-row items-center'>
-        <p className='text-black font-semibold text-2xl'>Syncify</p>
-      </div>
+      <Header />
       <div className='pt-[100px] px-[50px] flex flex-col'>
         <div className='flex flex-row gap-[50px]'>
-          <Card className='w-[350px] bg-primary pb-5 cursor-pointer'>
+          <Card
+            className='w-[350px] bg-primary pb-5 cursor-pointer'
+            onClick={handleScheduleMeeting}
+          >
             <CardHeader>
               <CardTitle className='text-xl'>Schedule meeting</CardTitle>
               <CardDescription>
@@ -27,7 +82,10 @@ const Home = () => {
               </CardDescription>
             </CardHeader>
           </Card>
-          <Card className='w-[350px] bg-primary pb-5 cursor-pointer'>
+          <Card
+            className='w-[350px] bg-primary pb-5 cursor-pointer'
+            onClick={handleShowScheduledMeetings}
+          >
             <CardHeader>
               <CardTitle className='text-xl'>View Scheduled Meetings</CardTitle>
               <CardDescription>
@@ -36,12 +94,16 @@ const Home = () => {
             </CardHeader>
           </Card>
         </div>
-        <p className='text-black font-light mt-[72px] text-2xl'>
+        <p className='text-black font-light mt-[72px] text-2xl mb-8'>
           My availability
         </p>
-        <div className='flex flex-row justify-around pb-[100px]'>
-          <AvailabilityTable />
-          <Card className='bg-white border border-black h-[400px] ml-[50px]'>
+        <div className='flex flex-row justify-between pb-[100px]'>
+          <AvailabilityTable
+            selectedSlots={selectedSlots}
+            setSelectedSlots={setSelectedSlots}
+            markedSlots={markedSlots}
+          />
+          <Card className='bg-white border border-black h-[350px] ml-[50px] fixed right-[50px]'>
             <CardHeader>
               <CardTitle className='text-xl'>Set Availability</CardTitle>
               <CardDescription>
@@ -70,6 +132,25 @@ const Home = () => {
                   />
                 </div>
               </CardDescription>
+              <CardFooter
+                style={{
+                  marginTop: 50,
+                  gap: 24,
+                }}
+              >
+                <Button
+                  className='bg-primary flex-1 self-center'
+                  onClick={handleMarkSelectedSlots}
+                >
+                  Mark selection
+                </Button>
+                <Button
+                  className='bg-red-400 flex-1 self-center hover:bg-red-600'
+                  onClick={handleUnmarkSelectedSlots}
+                >
+                  Unmark selection
+                </Button>
+              </CardFooter>
             </CardHeader>
           </Card>
         </div>

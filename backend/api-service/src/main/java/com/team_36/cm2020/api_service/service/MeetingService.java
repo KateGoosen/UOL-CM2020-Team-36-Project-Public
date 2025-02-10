@@ -1,108 +1,88 @@
 package com.team_36.cm2020.api_service.service;
 
-import com.team_36.cm2020.api_service.entities.Meeting;
-import com.team_36.cm2020.api_service.entities.MeetingParticipant;
-import com.team_36.cm2020.api_service.entities.MeetingParticipantId;
-import com.team_36.cm2020.api_service.entities.User;
+import com.team_36.cm2020.api_service.input.FinalizeMeetingInput;
 import com.team_36.cm2020.api_service.input.NewMeeting;
-import com.team_36.cm2020.api_service.messaging.RabbitMQProducer;
+import com.team_36.cm2020.api_service.input.VoteInput;
 import com.team_36.cm2020.api_service.output.CreateMeetingResponse;
-import com.team_36.cm2020.api_service.repositories.MeetingParticipantRepository;
-import com.team_36.cm2020.api_service.repositories.MeetingRepository;
-import com.team_36.cm2020.api_service.repositories.UserRepository;
-import jakarta.transaction.Transactional;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.team_36.cm2020.api_service.output.GetMeetingForOrganizerResponse;
+import com.team_36.cm2020.api_service.output.MeetingDataForParticipantResponse;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
-@Slf4j
-@Service
-public class MeetingService implements MeetingServiceInterface {
+public interface MeetingService {
+    /**
+     * Creates a new meeting.
+     *
+     * @param meetingData The meeting details received from the API request.
+     * @return organizer token.
+     */
+    CreateMeetingResponse createMeeting(NewMeeting meetingData);
 
-    @Autowired
-    RabbitMQProducer rabbitMQProducer;
+    /**
+     * Get information about the meeting (only the organizer can access).
+     *
+     * @param meetingId      meeting ID
+     * @param organizerToken organizer token
+     * @return {@link GetMeetingForOrganizerResponse}
+     */
+    GetMeetingForOrganizerResponse getMeetingForOrganizer(UUID meetingId, UUID organizerToken);
 
-    @Autowired
-    MeetingRepository meetingRepository;
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    MeetingParticipantRepository meetingParticipantRepository;
+    /**
+     * Edit the meeting data (only the organizer can access).
+     *
+     * @param meetingId      meeting ID
+     * @param organizerToken organizer token
+     * @param meetingData    {@link NewMeeting}
+     */
+    void editMeeting(UUID meetingId, UUID organizerToken, NewMeeting meetingData);
 
+    /**
+     * Delete the meeting
+     *
+     * @param meetingId      meeting ID
+     * @param organizerToken organizer token
+     */
+    void deleteMeeting(UUID meetingId, UUID organizerToken);
 
-    @Override
-    @Transactional
-    public CreateMeetingResponse createMeeting(NewMeeting meetingData) {
-        log.debug("Start creating new meeting");
+    /**
+     * Finalize the meeting (set final time slot and close the voting)
+     *
+     * @param meetingId            meeting ID
+     * @param organizerToken       organizer token
+     * @param finalizeMeetingInput {@link FinalizeMeetingInput}
+     */
+    void finalizeMeeting(UUID meetingId, UUID organizerToken, FinalizeMeetingInput finalizeMeetingInput);
 
-        User organizer = checkIfExistsAndCreateUser(meetingData.getOrganizer().getEmail(), meetingData.getOrganizer().getName());
+    /**
+     * Vote for available time slots for a meeting
+     *
+     * @param meetingId meeting ID
+     * @param voteInput {@link VoteInput}
+     */
+    void vote(UUID meetingId, VoteInput voteInput);
 
-        List<User> participants = new ArrayList<>();
-        for (NewMeeting.Participant participant : meetingData.getParticipants()) {
-            User savedParticipant = checkIfExistsAndCreateUser(participant.getEmail(), participant.getName());
-            participants.add(savedParticipant);
-        }
+    /**
+     * Get all available meetings by email (for participants)
+     *
+     * @param userEmail user's email
+     * @return set of {@link MeetingDataForParticipantResponse}
+     */
+    Set<MeetingDataForParticipantResponse> getMeetingsByEmail(String userEmail);
 
-        Meeting savedMeeting = saveMeeting(organizer, meetingData, participants);
+    /**
+     * Restore link for manipulating the meeting (the link is sent to the organizer's email)
+     *
+     * @param meetingId meeting ID
+     */
+    void restoreEditLink(UUID meetingId);
 
-        log.debug("Finish creating new meeting");
-        return new CreateMeetingResponse(savedMeeting.getOrganizerToken(), savedMeeting.getMeetingId());
-    }
-
-
-
-    private Meeting saveMeeting(User organizer, NewMeeting meetingData, List<User> participants) {
-
-
-        Meeting newMeeting = Meeting.builder()
-                .organizer(organizer)
-                .title(meetingData.getTitle())
-                .description(meetingData.getDescription())
-                .dateTimeCreated(LocalDateTime.now())
-                .dateTimeUpdated(LocalDateTime.now())
-                .dateTimeToDelete(LocalDateTime.now().plusMonths(3))
-                .organizerToken(UUID.randomUUID())
-                .build();
-
-        Meeting savedMeeting = this.meetingRepository.save(newMeeting);
-
-        List<MeetingParticipant> participantsToSave = new ArrayList<>();
-
-        for(User participant : participants){
-            MeetingParticipant participantToSave = MeetingParticipant.builder()
-                    .id(MeetingParticipantId.builder()
-                            .meetingId(savedMeeting.getMeetingId())
-                            .userId(participant.getUserId())
-                            .build())
-                    .meeting(newMeeting)
-                    .user(participant)
-                    .build();
-            participantsToSave.add(participantToSave);
-        }
-        meetingParticipantRepository.saveAll(participantsToSave);
-
-        return this.meetingRepository.save(newMeeting);
-    }
-
-    private User checkIfExistsAndCreateUser(String email, String name) {
-        Optional<User> user = userRepository.findUserByEmail(email);
-        if (user.isEmpty()) {
-            log.debug("User with email: {} does not exist, creating new user", email);
-            User newCreator = User.builder()
-                    .email(email)
-                    .name(name)
-                    .isRegistered(false)
-                    .lastTimeActive(LocalDateTime.now())
-                    .dateTimeToDelete(LocalDateTime.now().plusYears(1))
-                    .build();
-            return this.userRepository.save(newCreator);
-        }
-        return user.get();
-    }
+    /**
+     * View the meeting's details (for participant)
+     *
+     * @param meetingId meeting ID
+     * @param userEmail user email
+     * @return {@link MeetingDataForParticipantResponse}
+     */
+    MeetingDataForParticipantResponse viewMeetingDetailsByParticipant(UUID meetingId, String userEmail);
 }

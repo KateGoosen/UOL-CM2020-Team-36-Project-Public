@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.team_36.cm2020.notifications_service.entities.Notification;
+import com.team_36.cm2020.notifications_service.listeners.dto.MessageDto;
 import com.team_36.cm2020.notifications_service.service.NotificationService;
 import lombok.AllArgsConstructor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -24,7 +25,7 @@ public class MeetingNotificationListener {
                 messageDto.getMeetingTitle(),
                 messageDto.getMeetingId(),
                 messageDto.getUserId(),
-                messageDto.getCreatorToken());
+                messageDto.getOrganizerToken());
         sendEmailAndWriteLog(messageDto, emailText, "New Meeting Created");
     }
 
@@ -47,7 +48,7 @@ public class MeetingNotificationListener {
                 messageDto.getMeetingTitle(),
                 messageDto.getMeetingId(),
                 messageDto.getUserId(),
-                messageDto.getCreatorToken());
+                messageDto.getOrganizerToken());
         sendEmailAndWriteLog(messageDto, emailText, "Vote Registered");
     }
 
@@ -70,7 +71,7 @@ public class MeetingNotificationListener {
                 messageDto.getMeetingDateTime(),
                 messageDto.getMeetingId(),
                 messageDto.getUserId(),
-                messageDto.getCreatorToken());
+                messageDto.getOrganizerToken());
         sendEmailAndWriteLog(messageDto, emailText, "Meeting Time Finalized");
     }
 
@@ -82,7 +83,7 @@ public class MeetingNotificationListener {
                 messageDto.getMeetingTitle(),
                 messageDto.getMeetingId(),
                 messageDto.getUserId(),
-                messageDto.getCreatorToken());
+                messageDto.getOrganizerToken());
         sendEmailAndWriteLog(messageDto, emailText, "No Suitable Time Slots");
     }
 

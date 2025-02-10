@@ -13,9 +13,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -24,6 +26,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Setter
 public class Meeting {
     @Id
     @GeneratedValue
@@ -50,7 +53,23 @@ public class Meeting {
     @Column(nullable = false)
     private UUID organizerToken;
 
+    @Column(nullable = false)
+    private Integer duration;
+
     @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MeetingParticipant> participants;
+    private Set<MeetingParticipant> participants;
+
+    @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Vote> votes;
+
+    @Column(nullable = false)
+    private Boolean isVotingOpened;
+
+    @Column
+    private LocalDateTime finalTimeSlot;
+
+    @Column
+    private LocalDateTime votingDeadline;
+
 }
 

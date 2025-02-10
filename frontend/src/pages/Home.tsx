@@ -8,6 +8,8 @@ import {
 } from "@/components/shadcdn/ui/card";
 import AvailabilityTable from "@/components/home/AvailabilityTable";
 import { Button } from "@/components/shadcdn/ui/button";
+import { useNavigate } from "react-router";
+import Header from "@/components/Header";
 
 export interface SelectedSlot {
   day: string;
@@ -28,6 +30,7 @@ const Home = () => {
   >("available");
   const [selectedSlots, setSelectedSlots] = useState<SelectedSlot[]>([]);
   const [markedSlots, setMarkedSlots] = useState<MarkedSlot[]>([]);
+  const navigate = useNavigate();
 
   const handleMarkSelectedSlots = () => {
     setMarkedSlots([
@@ -54,14 +57,23 @@ const Home = () => {
     setSelectedSlots([]);
   };
 
+  const handleScheduleMeeting = () => {
+    navigate("/schedule-meeting");
+  };
+
+  const handleShowScheduledMeetings = () => {
+    navigate("/view-scheduled-meetings");
+  };
+
   return (
     <div>
-      <div className='bg-primary h-[80px] w-full pl-[50px] flex flex-row items-center'>
-        <p className='text-black font-semibold text-2xl'>Syncify</p>
-      </div>
+      <Header />
       <div className='pt-[100px] px-[50px] flex flex-col'>
         <div className='flex flex-row gap-[50px]'>
-          <Card className='w-[350px] bg-primary pb-5 cursor-pointer'>
+          <Card
+            className='w-[350px] bg-primary pb-5 cursor-pointer'
+            onClick={handleScheduleMeeting}
+          >
             <CardHeader>
               <CardTitle className='text-xl'>Schedule meeting</CardTitle>
               <CardDescription>
@@ -70,7 +82,10 @@ const Home = () => {
               </CardDescription>
             </CardHeader>
           </Card>
-          <Card className='w-[350px] bg-primary pb-5 cursor-pointer'>
+          <Card
+            className='w-[350px] bg-primary pb-5 cursor-pointer'
+            onClick={handleShowScheduledMeetings}
+          >
             <CardHeader>
               <CardTitle className='text-xl'>View Scheduled Meetings</CardTitle>
               <CardDescription>

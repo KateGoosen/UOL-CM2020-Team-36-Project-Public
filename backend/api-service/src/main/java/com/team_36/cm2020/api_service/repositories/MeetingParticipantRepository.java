@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface MeetingParticipantRepository extends JpaRepository<MeetingParticipant, UUID> {
-    void deleteAllByMeeting_MeetingIdAndUser_Email(UUID meetingId, Set<String> userEmails);
+//    void deleteAllByMeeting_MeetingIdAndUser_Email(UUID meetingId, Set<String> userEmails);
 
     List<MeetingParticipant> findAllByUser(User user);
 }

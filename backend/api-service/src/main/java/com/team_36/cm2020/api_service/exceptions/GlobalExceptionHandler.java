@@ -1,10 +1,5 @@
-package com.team_36.cm2020.api_service.controllers;
+package com.team_36.cm2020.api_service.exceptions;
 
-import com.team_36.cm2020.api_service.exceptions.NoMeetingFoundException;
-import com.team_36.cm2020.api_service.exceptions.NoPrivilegeToAccessException;
-import com.team_36.cm2020.api_service.exceptions.NoUserFoundException;
-import com.team_36.cm2020.api_service.exceptions.UserIsNotParticipantOfTheMeetingException;
-import com.team_36.cm2020.api_service.exceptions.VotingIsClosedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

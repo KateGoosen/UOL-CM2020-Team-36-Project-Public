@@ -1,4 +1,11 @@
 spring:
+  springdoc:
+    api-docs:
+      enabled: true
+      path: /v3/api-docs
+    swagger-ui:
+      enabled: true
+      path: /swagger-ui.html
   rabbitmq:
     host: localhost
     port: 5672
@@ -21,5 +28,7 @@ spring:
 #  flyway:
 #    enabled: true
 #    baseline-on-migrate: true
+
+
 
 

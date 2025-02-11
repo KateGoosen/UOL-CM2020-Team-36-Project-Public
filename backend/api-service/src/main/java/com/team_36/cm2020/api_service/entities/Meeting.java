@@ -57,7 +57,7 @@ public class Meeting {
     private Integer duration;
 
     @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<MeetingParticipant> participants;
+    private List<MeetingParticipant> participants;
 
     @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Vote> votes;

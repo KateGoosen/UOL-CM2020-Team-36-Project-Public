@@ -93,7 +93,7 @@ public class MeetingServiceImpl implements MeetingService {
         Map<UUID, List<Vote>> voteMap = votes.stream()
                 .collect(Collectors.groupingBy(vote -> vote.getUser().getUserId()));
 
-        Set<ParticipantResponse> participantResponse = meeting.getParticipants().stream().map(participant -> {
+        List<ParticipantResponse> participantResponse = meeting.getParticipants().stream().map(participant -> {
                     boolean ifVoted = voteMap.containsKey(participant.getUser().getUserId());
                     return ParticipantResponse.builder()
                             .name(participant.getUser().getName())
@@ -113,7 +113,7 @@ public class MeetingServiceImpl implements MeetingService {
                                     : new HashSet<>())
                             .build();
                 })
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
 
         return GetMeetingForOrganizerResponse.builder()
                 .title(meeting.getTitle())
@@ -134,18 +134,15 @@ public class MeetingServiceImpl implements MeetingService {
         Set<String> existentUsersEmails = meeting.getParticipants().stream()
                 .map(participant -> participant.getUser().getEmail())
                 .collect(Collectors.toSet());
-        Set<String> newUsersEmails = meetingData.getParticipants().stream()
-                .map(NewMeeting.Participant::getEmail)
-                .collect(Collectors.toSet());
 
         // save new users to the 'users' table
-        Set<User> newUsersToSave = meetingData.getParticipants().stream()
+        List<User> newUsersToSave = meetingData.getParticipants().stream()
                 .filter(participant -> !existentUsersEmails.contains(participant.getEmail()))
                 .map(participant -> User.builder()
                         .name(participant.getName())
                         .email(participant.getEmail())
                         .build())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
         List<User> savedNewUsers = this.userRepository.saveAll(newUsersToSave);
         Set<String> saveNewUsersEmails = savedNewUsers.stream()
                 .map(User::getEmail)
@@ -359,7 +356,7 @@ public class MeetingServiceImpl implements MeetingService {
         }
         meetingParticipantRepository.saveAll(participantsToSave);
 
-        return this.meetingRepository.save(newMeeting);
+        return savedMeeting;
     }
 
     private User checkIfExistsAndCreateUser(String email, String name) {

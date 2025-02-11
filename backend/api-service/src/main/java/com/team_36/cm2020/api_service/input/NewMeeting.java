@@ -1,6 +1,7 @@
 package com.team_36.cm2020.api_service.input;
 
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 
@@ -48,6 +49,7 @@ public class NewMeeting {
     // Inner class for participants
     @Data
     @Getter
+    @AllArgsConstructor
     public static class Participant {
         @NotBlank(message = "Participant name is required")
         private String name;
@@ -59,6 +61,8 @@ public class NewMeeting {
 
     // Inner class for organizer
     @Data
+    @Getter
+    @AllArgsConstructor
     public static class Organizer {
         @NotBlank(message = "Organizer name is required")
         private String name;

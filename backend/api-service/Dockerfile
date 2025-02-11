@@ -4,7 +4,9 @@ WORKDIR /app
 
 # Copy Gradle wrapper files properly
 COPY gradlew gradlew.bat gradle/wrapper/ ./
-RUN chmod +x gradlew  # Ensure execution permission
+
+# Ensure execution permission
+RUN chmod +x gradlew
 
 # Copy Gradle build scripts
 COPY build.gradle settings.gradle ./

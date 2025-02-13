@@ -30,8 +30,8 @@ COPY --from=build /app/build/libs/*.jar app.jar
 #COPY init-db.sql /docker-entrypoint-initdb.d/
 
 
-# Expose port 8080
-EXPOSE 8080
+# Expose port 8081
+EXPOSE 8081
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

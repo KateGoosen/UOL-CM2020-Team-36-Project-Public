@@ -1,11 +1,23 @@
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
 spring:
-  springdoc:
-    api-docs:
-      enabled: true
-      path: /v3/api-docs
-    swagger-ui:
-      enabled: true
-      path: /swagger-ui.html
+
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+  #  springdoc:
+#    api-docs:
+#      enabled: true
+#      path: /v3/api-docs
+#    swagger-ui:
+#      enabled: true
+#      path: /swagger-ui.html
   rabbitmq:
     host: localhost
     port: 5672

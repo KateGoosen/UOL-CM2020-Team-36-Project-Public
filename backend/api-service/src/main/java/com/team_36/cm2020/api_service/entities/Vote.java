@@ -1,5 +1,8 @@
 package com.team_36.cm2020.api_service.entities;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,14 +18,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 @Entity
 @Getter
 @Builder
 @Setter
-@Table(name = "votes")
+@Table(name = "votes", schema = "scheduler")
 @NoArgsConstructor
 @AllArgsConstructor
 public class Vote {
@@ -53,4 +53,3 @@ public class Vote {
     }
 
 }
-

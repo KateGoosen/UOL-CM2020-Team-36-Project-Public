@@ -35,12 +35,12 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: validate  # Prevent Hibernate from modifying schema
+      ddl-auto: validate # Prevent Hibernate from modifying schema
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 #  flyway:
 #    enabled: true
 #    baseline-on-migrate: true
-
-
-
-
+# TODO: Should be removed in production.
+logging:
+  level:
+    com.team_36.cm2020.api_service: DEBUG

@@ -1,5 +1,9 @@
 package com.team_36.cm2020.api_service.entities;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,14 +19,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
 @Entity
 @Builder
-@Table(name = "meetings")
+@Table(name = "meetings", schema = "scheduler")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -72,4 +71,3 @@ public class Meeting {
     private LocalDateTime votingDeadline;
 
 }
-

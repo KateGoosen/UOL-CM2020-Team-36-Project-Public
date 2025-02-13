@@ -1,5 +1,17 @@
 package com.team_36.cm2020.api_service.service.impl;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
 import com.team_36.cm2020.api_service.entities.Meeting;
 import com.team_36.cm2020.api_service.entities.MeetingParticipant;
 import com.team_36.cm2020.api_service.entities.MeetingParticipantId;
@@ -26,20 +38,10 @@ import com.team_36.cm2020.api_service.repositories.VoteRepository;
 import com.team_36.cm2020.api_service.rmq.NotificationMessage;
 import com.team_36.cm2020.api_service.service.MeetingService;
 import com.team_36.cm2020.api_service.service.NotificationService;
+
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -68,7 +70,12 @@ public class MeetingServiceImpl implements MeetingService {
             participants.add(savedParticipant);
         }
 
+        log.debug("Hashed meeting participants: " + participants);
+
         Meeting savedMeeting = saveMeeting(organizer, meetingData, participants, Optional.empty());
+
+        log.debug("Sending notification to meeting organizer to alert them of the new meeting.");
+        log.debug("Saved meeting participants: " + savedMeeting.getParticipants());
 
         this.notificationService.sendNotificationNewMeetingOrganizer(
                 new NotificationMessage(organizer, savedMeeting, UserType.ORGANIZER, Optional.empty())

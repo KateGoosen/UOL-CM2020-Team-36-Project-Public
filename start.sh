@@ -4,7 +4,7 @@
 # The Docker container can also be ran from Visual Studio Code by going to the docker-compose.yml and clicking on 'Run All Services'
 # Or the container can be started from the Docker app if using Windows or macOS.
 cd backend
-docker compose -f './api-service/docker-compose.yml' up -d --build
+docker compose -f './backend/docker-compose.yml' up -d --build
 cd ..
 
 # Start up the frontend.

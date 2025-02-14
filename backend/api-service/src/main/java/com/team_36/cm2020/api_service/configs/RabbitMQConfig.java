@@ -2,6 +2,7 @@ package com.team_36.cm2020.api_service.configs;
 
 import lombok.AllArgsConstructor;
 import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,17 +17,17 @@ public class RabbitMQConfig {
     private final AmqpAdmin amqpAdmin;
 
     @Bean
-    public TopicExchange meetingExchange() {
-        return new TopicExchange("meeting.exchange");
+    public DirectExchange meetingExchange() {
+        return new DirectExchange("meeting.exchange");
     }
 
     @Bean
-    public TopicExchange voteExchange() {
-        return new TopicExchange("vote.exchange");
+    public DirectExchange voteExchange() {
+        return new DirectExchange("vote.exchange");
     }
 
     @Bean
-    public TopicExchange authExchange() {
-        return new TopicExchange("auth.exchange");
+    public DirectExchange authExchange() {
+        return new DirectExchange("auth.exchange");
     }
 }

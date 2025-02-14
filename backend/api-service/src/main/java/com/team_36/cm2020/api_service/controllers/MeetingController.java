@@ -3,7 +3,9 @@ package com.team_36.cm2020.api_service.controllers;
 import java.util.Set;
 import java.util.UUID;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,7 +57,7 @@ public class MeetingController {
     @PutMapping("/{meeting_id}/{organizer_token}")
     public ResponseEntity<Void> editMeeting(@PathVariable(name = "meeting_id") UUID meetingId,
             @PathVariable(name = "organizer_token") UUID organizerToken,
-            @RequestBody NewMeeting meetingData) {
+            @RequestBody @Valid NewMeeting meetingData) {
         meetingService.editMeeting(meetingId, organizerToken, meetingData);
         return ResponseEntity.ok().build();
     }

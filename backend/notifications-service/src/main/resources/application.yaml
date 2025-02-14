@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: notifications-service
   liquibase:
     default-schema: audit
     change-log: classpath:/db/changelog/db.changelog-master.yaml

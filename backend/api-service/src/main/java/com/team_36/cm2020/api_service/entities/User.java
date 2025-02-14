@@ -32,13 +32,8 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @Column
     private String password;
-
-    @Column(nullable = false)
-    private LocalDateTime lastTimeActive;
-
-    @Column(nullable = false)
-    private LocalDateTime dateTimeToDelete;
 
     @Column(nullable = false)
     private boolean isRegistered;

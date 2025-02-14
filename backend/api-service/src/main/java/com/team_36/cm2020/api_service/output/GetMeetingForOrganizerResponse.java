@@ -21,5 +21,6 @@ public class GetMeetingForOrganizerResponse {
     private LocalDateTime dateTimeCreated;
     private LocalDateTime dateTimeUpdated;
     private List<ParticipantResponse> participants;
+    private Integer duration;
 }
 

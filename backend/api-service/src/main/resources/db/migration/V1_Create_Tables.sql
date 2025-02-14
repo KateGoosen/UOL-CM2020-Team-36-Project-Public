@@ -5,8 +5,6 @@ CREATE TABLE scheduler.users
     email               VARCHAR(255) NOT NULL UNIQUE,
     name                VARCHAR(255) NOT NULL,
     password            VARCHAR(255),
-    last_time_active    TIMESTAMP    NOT NULL,
-    date_time_to_delete TIMESTAMP    NOT NULL,
     is_registered       BOOLEAN      NOT NULL
 );
 

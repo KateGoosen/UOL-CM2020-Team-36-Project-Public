@@ -38,10 +38,13 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_USERNAME: guest
       SPRING_RABBITMQ_PASSWORD: guest
+      JAVA_TOOL_OPTIONS: "-Djavax.net.ssl.trustStore=/etc/ssl/cacerts -Djavax.net.ssl.trustStorePassword=changeit"
     ports:
       - "8081:8081"
-#    networks:
-#      - app-network
+    volumes:
+      - ./certs:/etc/ssl
+#    volumes:
+#      - ./certs/cacerts:/etc/ssl/cacerts
 
   api-service:
     build: ./api-service

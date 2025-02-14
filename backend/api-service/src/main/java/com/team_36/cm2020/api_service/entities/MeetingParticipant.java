@@ -27,4 +27,7 @@ public class MeetingParticipant implements Serializable {
     @MapsId("userId")
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(name = "if_voted")
+    private boolean ifVoted;
 }

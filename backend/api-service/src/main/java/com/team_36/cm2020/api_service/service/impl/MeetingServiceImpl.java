@@ -9,6 +9,7 @@ import com.team_36.cm2020.api_service.enums.UserType;
 import com.team_36.cm2020.api_service.exceptions.NoMeetingFoundException;
 import com.team_36.cm2020.api_service.exceptions.NoPrivilegeToAccessException;
 import com.team_36.cm2020.api_service.exceptions.NoUserFoundException;
+import com.team_36.cm2020.api_service.exceptions.ParticipantAlreadyVotedException;
 import com.team_36.cm2020.api_service.exceptions.UserIsNotParticipantOfTheMeetingException;
 import com.team_36.cm2020.api_service.exceptions.VotingIsClosedException;
 import com.team_36.cm2020.api_service.input.FinalizeMeetingInput;
@@ -27,6 +28,7 @@ import com.team_36.cm2020.api_service.rmq.NotificationMessage;
 import com.team_36.cm2020.api_service.service.MeetingService;
 import com.team_36.cm2020.api_service.service.NotificationService;
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -216,12 +218,16 @@ public class MeetingServiceImpl implements MeetingService {
     public void vote(UUID meetingId, VoteInput voteInput) {
         Meeting meeting = getMeetingIfExistsById(meetingId);
 
-        // TODO What if a user chooses no time slots?
-
         if (!meeting.getIsVotingOpened()) {
             throw new VotingIsClosedException("Voting is closed!");
         }
+
         User user = getUserByEmail(voteInput.getUserEmail());
+        MeetingParticipant meetingParticipant = this.meetingParticipantRepository.findAllByUserAndAndMeeting(user, meeting);
+
+        if(meetingParticipant.isIfVoted()){
+            throw new ParticipantAlreadyVotedException(String.format("The participant with email: %s has already voted", user.getEmail()));
+        }
 
         Set<Vote> votesToSave = new HashSet<>();
         votesToSave.addAll(createVotes(voteInput.getLowPriorityTimeSlots(),
@@ -230,6 +236,9 @@ public class MeetingServiceImpl implements MeetingService {
                 Vote.Priority.HIGH, meeting, user));
 
         this.voteRepository.saveAll(votesToSave);
+
+        meetingParticipant.setIfVoted(true);
+        meetingParticipantRepository.save(meetingParticipant);
 
         this.notificationService.sendNotificationVoteRegisteredOrganizer(
                 new NotificationMessage(meeting.getOrganizer(), meeting, UserType.ORGANIZER,
@@ -373,7 +382,8 @@ public class MeetingServiceImpl implements MeetingService {
         }
 
         // Save the meeting participants.
-        List<MeetingParticipant> finalParticipantsList = newMeeting.getParticipants();
+        List<MeetingParticipant> finalParticipantsList = newMeeting.getParticipants() != null
+                ? newMeeting.getParticipants() : new ArrayList<>();
         finalParticipantsList.addAll(participantsToSave);
 
         newMeeting.setParticipants(finalParticipantsList);

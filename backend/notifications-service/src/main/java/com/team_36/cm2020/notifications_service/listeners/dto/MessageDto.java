@@ -1,21 +1,27 @@
 package com.team_36.cm2020.notifications_service.listeners.dto;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.UUID;
 
+@AllArgsConstructor
 @Getter
-public class MessageDto {
-    private final String userName;
-    private final String meetingTitle;
-    private final UUID meetingId;
-    private final UUID userId;
-    private final UUID organizerToken;
-    private final String userEmail;
-    private final String meetingDateTime;
-    private final Integer duration;
-    private final String confirmationCode;
+@NoArgsConstructor
+//@AllArgsConstructor
+public class MessageDto implements Serializable {
+    private String userName;
+    private String meetingTitle;
+    private UUID meetingId;
+    private UUID userId;
+    private UUID organizerToken;
+    private String userEmail;
+    private String meetingDateTime;
+    private Integer duration;
+    private String confirmationCode;
 
     public MessageDto(JsonNode messageJson) {
         this.userName = getStringFieldIfNotNull(messageJson, "userName");

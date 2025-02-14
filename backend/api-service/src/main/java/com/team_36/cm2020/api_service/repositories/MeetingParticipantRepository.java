@@ -1,5 +1,6 @@
 package com.team_36.cm2020.api_service.repositories;
 
+import com.team_36.cm2020.api_service.entities.Meeting;
 import com.team_36.cm2020.api_service.entities.MeetingParticipant;
 import com.team_36.cm2020.api_service.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,5 +13,6 @@ public interface MeetingParticipantRepository extends JpaRepository<MeetingParti
 //    void deleteAllByMeeting_MeetingIdAndUser_Email(UUID meetingId, Set<String> userEmails);
 
     List<MeetingParticipant> findAllByUser(User user);
+    MeetingParticipant findAllByUserAndAndMeeting(User user, Meeting meeting);
 }
 

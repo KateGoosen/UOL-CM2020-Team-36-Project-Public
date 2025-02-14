@@ -20,23 +20,33 @@ import com.team_36.cm2020.api_service.repositories.UserRepository;
 import com.team_36.cm2020.api_service.repositories.VoteRepository;
 import com.team_36.cm2020.api_service.rmq.NotificationMessage;
 import com.team_36.cm2020.api_service.service.NotificationService;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anySet;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MeetingServiceImplTest {
@@ -91,7 +101,7 @@ class MeetingServiceImplTest {
         meeting = new Meeting();
         meeting.setMeetingId(UUID.randomUUID());
         meeting.setOrganizerToken(UUID.randomUUID());
-        meeting.setParticipants(List.of(new MeetingParticipant(new MeetingParticipantId(UUID.randomUUID(), UUID.randomUUID()), meeting, participant)));
+        meeting.setParticipants(List.of(new MeetingParticipant(new MeetingParticipantId(UUID.randomUUID(), UUID.randomUUID()), meeting, participant, false)));
     }
 
     @Test
@@ -138,7 +148,8 @@ class MeetingServiceImplTest {
         MeetingParticipant meetingParticipant = new MeetingParticipant(
                 new MeetingParticipantId(UUID.randomUUID(), UUID.randomUUID()),
                 meeting,
-                participant);
+                participant,
+                false);
         meeting.setParticipants(List.of(meetingParticipant));
 
         Vote vote = new Vote();
@@ -270,9 +281,12 @@ class MeetingServiceImplTest {
         meeting.setMeetingId(meetingId);
         meeting.setIsVotingOpened(true);
         meeting.setOrganizer(organizer);
+        meeting.getParticipants().forEach(participant -> participant.setIfVoted(false));
 
         when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(meeting));
         when(userRepository.findUserByEmail(participantEmail)).thenReturn(Optional.of(participant));
+        when(this.meetingParticipantRepository.findAllByUserAndAndMeeting(any(), any()))
+                .thenReturn(MeetingParticipant.builder().ifVoted(false).build());
 
         meetingService.vote(meetingId, voteInput);
 
@@ -341,7 +355,7 @@ class MeetingServiceImplTest {
         meeting.setMeetingId(meetingId);
         meeting.setParticipants(List.of(new MeetingParticipant(
                 new MeetingParticipantId(meetingId, participant.getUserId()),
-                meeting, participant)));
+                meeting, participant, false)));
 
         when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(meeting));
         when(userRepository.findUserByEmail(participantEmail)).thenReturn(Optional.of(participant));

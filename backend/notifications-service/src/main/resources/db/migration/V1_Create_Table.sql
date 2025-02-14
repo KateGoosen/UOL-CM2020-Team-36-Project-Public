@@ -7,7 +7,8 @@ CREATE TABLE notifications
     user_id         UUID         NOT NULL,
     user_email      VARCHAR(255) NOT NULL,
     date_time_sent  TIMESTAMP    NOT NULL,
-    success         boolean      NOT NULL
+    success         boolean      NOT NULL,
+    error           VARCHAR
 
 );
 

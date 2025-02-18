@@ -107,8 +107,8 @@ public class MeetingController {
     public ResponseEntity<MeetingDataForParticipantResponse> viewMeetingDetailsByParticipant(
             @PathVariable(name = "meeting_id") UUID meetingId,
             @PathVariable(name = "user_email") String userEmail) {
-        meetingService.viewMeetingDetailsByParticipant(meetingId, userEmail);
-        return ResponseEntity.ok().build();
+        MeetingDataForParticipantResponse response = meetingService.viewMeetingDetailsByParticipant(meetingId, userEmail);
+        return ResponseEntity.ok().body(response);
     }
 
     @GetMapping("/test")

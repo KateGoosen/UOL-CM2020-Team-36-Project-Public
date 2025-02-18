@@ -1,8 +1,6 @@
 package com.team_36.cm2020.api_service.entities;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
+import com.team_36.cm2020.api_service.enums.Priority;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,8 +10,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
+@Builder
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "time_slots", schema = "scheduler")
 public class TimeSlot {
     @Id
@@ -25,22 +34,9 @@ public class TimeSlot {
     private Meeting meeting;
 
     @Column(nullable = false)
-    private LocalDateTime timeStart;
-
-    @Column(nullable = false)
-    private LocalDateTime timeEnd;
+    private LocalDateTime dateTimeStart;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Priority priority;
-
-    @ManyToOne
-    @JoinColumn(name = "organizer_id", nullable = false)
-    private User organizer;
-
-    public enum Priority {
-        HIGH, LOW
-    }
-
-    // Getters and Setters
 }

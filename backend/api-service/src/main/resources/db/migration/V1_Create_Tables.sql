@@ -1,11 +1,11 @@
 -- Users Table
 CREATE TABLE scheduler.users
 (
-    user_id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email               VARCHAR(255) NOT NULL UNIQUE,
-    name                VARCHAR(255) NOT NULL,
-    password            VARCHAR(255),
-    is_registered       BOOLEAN      NOT NULL
+    user_id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email         VARCHAR(255) NOT NULL UNIQUE,
+    name          VARCHAR(255) NOT NULL,
+    password      VARCHAR(255),
+    is_registered BOOLEAN      NOT NULL
 );
 
 -- Meetings Table
@@ -30,8 +30,7 @@ CREATE TABLE scheduler.votes
 (
     vote_id    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     meeting_id UUID        NOT NULL REFERENCES scheduler.meetings (meeting_id),
-    time_start TIMESTAMP   NOT NULL,
-    time_end   TIMESTAMP   NOT NULL,
+    date_time_start TIMESTAMP   NOT NULL,
     priority   VARCHAR(10) NOT NULL CHECK (priority IN ('HIGH', 'LOW')),
     user_id    UUID        NOT NULL REFERENCES scheduler.users (user_id)
 );
@@ -41,8 +40,6 @@ CREATE TABLE scheduler.time_slots
 (
     time_slot_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     meeting_id   UUID        NOT NULL REFERENCES scheduler.meetings (meeting_id),
-    time_start   TIMESTAMP   NOT NULL,
-    time_end     TIMESTAMP   NOT NULL,
-    priority     VARCHAR(10) NOT NULL CHECK (priority IN ('HIGH', 'LOW')),
-    organizer_id UUID        NOT NULL REFERENCES scheduler.users (user_id)
+    date_time_start   TIMESTAMP   NOT NULL,
+    priority     VARCHAR(10) NOT NULL CHECK (priority IN ('HIGH', 'LOW'))
 );

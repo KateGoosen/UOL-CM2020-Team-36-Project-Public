@@ -35,10 +35,7 @@ public class Vote {
     private Meeting meeting;
 
     @Column(nullable = false)
-    private LocalDateTime timeStart;
-
-    @Column(nullable = false)
-    private LocalDateTime timeEnd;
+    private LocalDateTime dateTimeStart;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

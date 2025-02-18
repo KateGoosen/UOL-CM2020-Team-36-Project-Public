@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anySet;
 import static org.mockito.Mockito.anyString;
@@ -144,6 +145,8 @@ class MeetingServiceImplTest {
         meeting.setDescription("Meeting Description");
         meeting.setDateTimeCreated(LocalDateTime.now());
         meeting.setDateTimeUpdated(LocalDateTime.now());
+        meeting.setOrganizer(organizer);
+        meeting.setTimeSlots(new ArrayList<>());
 
         MeetingParticipant meetingParticipant = new MeetingParticipant(
                 new MeetingParticipantId(UUID.randomUUID(), UUID.randomUUID()),
@@ -155,7 +158,7 @@ class MeetingServiceImplTest {
         Vote vote = new Vote();
         vote.setUser(participant);
         vote.setMeeting(meeting);
-        vote.setTimeStart(LocalDateTime.now());
+        vote.setDateTimeStart(LocalDateTime.now());
         vote.setPriority(Vote.Priority.HIGH);
         List<Vote> votes = List.of(vote);
         meeting.setVotes(votes);
@@ -192,12 +195,11 @@ class MeetingServiceImplTest {
         meeting.setParticipants(new ArrayList<>());
 
         when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(meeting));
-        when(userRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(meetingRepository.save(any())).thenReturn(meeting);
+        when(this.userRepository.save(any())).thenReturn(participant);
 
         meetingService.editMeeting(meetingId, organizerToken, meetingData);
 
-        verify(userRepository, times(1)).saveAll(any());
         verify(meetingRepository, times(1)).save(any(Meeting.class));
     }
 
@@ -276,7 +278,7 @@ class MeetingServiceImplTest {
     @Transactional
     void testVote_Success() {
         UUID meetingId = UUID.randomUUID();
-        VoteInput voteInput = new VoteInput(participantEmail, Set.of(LocalDateTime.now()), Set.of(LocalDateTime.now()));
+        VoteInput voteInput = new VoteInput(participantEmail, List.of(LocalDateTime.now()), List.of(LocalDateTime.now()));
 
         meeting.setMeetingId(meetingId);
         meeting.setIsVotingOpened(true);
@@ -290,7 +292,7 @@ class MeetingServiceImplTest {
 
         meetingService.vote(meetingId, voteInput);
 
-        verify(voteRepository, times(1)).saveAll(anySet());
+        verify(voteRepository, times(1)).saveAll(anyList());
         verify(notificationService, times(1)).sendNotificationVoteRegisteredOrganizer(any(NotificationMessage.class));
         verify(notificationService, times(1)).sendNotificationVoteRegisteredParticipant(any(NotificationMessage.class));
     }
@@ -298,7 +300,7 @@ class MeetingServiceImplTest {
     @Test
     void testVote_MeetingNotFound() {
         UUID meetingId = UUID.randomUUID();
-        VoteInput voteInput = new VoteInput(participantEmail, Set.of(LocalDateTime.now()), Set.of(LocalDateTime.now()));
+        VoteInput voteInput = new VoteInput(participantEmail, List.of(LocalDateTime.now()), List.of(LocalDateTime.now()));
 
         when(meetingRepository.findById(meetingId)).thenReturn(Optional.empty());
 
@@ -308,7 +310,7 @@ class MeetingServiceImplTest {
     @Test
     void testVote_VotingClosed() {
         UUID meetingId = UUID.randomUUID();
-        VoteInput voteInput = new VoteInput(participantEmail, Set.of(LocalDateTime.now()), Set.of(LocalDateTime.now()));
+        VoteInput voteInput = new VoteInput(participantEmail, List.of(LocalDateTime.now()), List.of(LocalDateTime.now()));
 
         meeting.setMeetingId(meetingId);
         meeting.setIsVotingOpened(false);

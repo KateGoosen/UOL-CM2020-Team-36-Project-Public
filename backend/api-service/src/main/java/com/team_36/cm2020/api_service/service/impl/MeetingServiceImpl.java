@@ -3,6 +3,7 @@ package com.team_36.cm2020.api_service.service.impl;
 import com.team_36.cm2020.api_service.entities.Meeting;
 import com.team_36.cm2020.api_service.entities.MeetingParticipant;
 import com.team_36.cm2020.api_service.entities.MeetingParticipantId;
+import com.team_36.cm2020.api_service.entities.TimeSlot;
 import com.team_36.cm2020.api_service.entities.User;
 import com.team_36.cm2020.api_service.entities.Vote;
 import com.team_36.cm2020.api_service.enums.UserType;
@@ -19,16 +20,18 @@ import com.team_36.cm2020.api_service.messaging.RabbitMQProducer;
 import com.team_36.cm2020.api_service.output.CreateMeetingResponse;
 import com.team_36.cm2020.api_service.output.GetMeetingForOrganizerResponse;
 import com.team_36.cm2020.api_service.output.MeetingDataForParticipantResponse;
+import com.team_36.cm2020.api_service.output.OrganizerResponse;
 import com.team_36.cm2020.api_service.output.ParticipantResponse;
+import com.team_36.cm2020.api_service.output.TimeSlotResponse;
 import com.team_36.cm2020.api_service.repositories.MeetingParticipantRepository;
 import com.team_36.cm2020.api_service.repositories.MeetingRepository;
+import com.team_36.cm2020.api_service.repositories.TimeSlotRepository;
 import com.team_36.cm2020.api_service.repositories.UserRepository;
 import com.team_36.cm2020.api_service.repositories.VoteRepository;
 import com.team_36.cm2020.api_service.rmq.NotificationMessage;
 import com.team_36.cm2020.api_service.service.MeetingService;
 import com.team_36.cm2020.api_service.service.NotificationService;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -55,6 +59,7 @@ public class MeetingServiceImpl implements MeetingService {
     private final UserRepository userRepository;
     private final MeetingParticipantRepository meetingParticipantRepository;
     private final VoteRepository voteRepository;
+    private final TimeSlotRepository timeSlotRepository;
 
     @Override
     @Transactional
@@ -116,14 +121,14 @@ public class MeetingServiceImpl implements MeetingService {
                                     ? voteMap.get(participant.getUser().getUserId()).stream()
                                     .filter(vote -> vote.getPriority()
                                             .equals(Vote.Priority.LOW))
-                                    .map(Vote::getTimeStart)
+                                    .map(Vote::getDateTimeStart)
                                     .collect(Collectors.toSet())
                                     : new HashSet<>())
                             .timeSlotsHighPriority(ifVoted
                                     ? voteMap.get(participant.getUser().getUserId()).stream()
                                     .filter(vote -> vote.getPriority()
                                             .equals(Vote.Priority.HIGH))
-                                    .map(Vote::getTimeStart)
+                                    .map(Vote::getDateTimeStart)
                                     .collect(Collectors.toSet())
                                     : new HashSet<>())
                             .build();
@@ -133,10 +138,23 @@ public class MeetingServiceImpl implements MeetingService {
         return GetMeetingForOrganizerResponse.builder()
                 .title(meeting.getTitle())
                 .description(meeting.getDescription())
-                .dateTimeCreated(meeting.getDateTimeCreated())
-                .dateTimeUpdated(meeting.getDateTimeUpdated())
                 .duration(meeting.getDuration())
+                .organizer(OrganizerResponse.builder()
+                        .name(meeting.getOrganizer().getName())
+                        .email(meeting.getOrganizer().getEmail())
+                        .build())
                 .participants(participantResponse)
+
+                .timeSlots(meeting.getTimeSlots().stream()
+                        .map(slot -> TimeSlotResponse.builder()
+                                .dateTimeStart(slot.getDateTimeStart())
+                                .priority(slot.getPriority())
+                                .build())
+                        .toList()
+                )
+                .votingDeadLine(meeting.getVotingDeadline())
+                .finalDateTimeSlot(meeting.getFinalTimeSlot())
+                .dateTimeCreated(meeting.getDateTimeCreated())
                 .build();
     }
 
@@ -146,32 +164,26 @@ public class MeetingServiceImpl implements MeetingService {
         Meeting meeting = getMeetingIfExistsById(meetingId);
         checkOrganizerToken(organizerToken, meeting);
 
-        // Compare users and remove if needed
-        Set<String> existentUsersEmails = meeting.getParticipants().stream()
+        List<User> participants = new ArrayList<>();
+        for (NewMeeting.Participant participant : meetingData.getParticipants()) {
+            User savedParticipant = checkIfExistsAndCreateUser(participant.getEmail(),
+                    participant.getName());
+            participants.add(savedParticipant);
+        }
+
+        List<String> existentParticipantsEmails = meeting.getParticipants().stream()
                 .map(participant -> participant.getUser().getEmail())
-                .collect(Collectors.toSet());
+                .toList();
+        List<User> newParticipants = participants.stream()
+                .filter(participant -> !existentParticipantsEmails.contains(participant.getEmail())).toList();
 
-        // save new users to the 'users' table
-        List<User> newUsersToSave = meetingData.getParticipants().stream()
-                .filter(participant -> !existentUsersEmails.contains(participant.getEmail()))
-                .map(participant -> User.builder()
-                        .name(participant.getName())
-                        .email(participant.getEmail())
-                        .isRegistered(false)
-                        .build())
-                .collect(Collectors.toList());
-        List<User> savedNewUsers = this.userRepository.saveAll(newUsersToSave);
-        Set<String> saveNewUsersEmails = savedNewUsers.stream()
-                .map(User::getEmail)
-                .collect(Collectors.toSet());
+        this.saveMeeting(meeting.getOrganizer(), meetingData, participants, Optional.of(meeting));
 
-//        Set<User> newUsersToAddToMeeting = meeting.getParticipants().stream()
-//                .map(MeetingParticipant::getUser)
-//                .filter(user -> saveNewUsersEmails.contains(user.getEmail()))
-//                .collect(Collectors.toSet());
-//        newUsersToAddToMeeting.addAll(savedNewUsers);
-
-        this.saveMeeting(meeting.getOrganizer(), meetingData, savedNewUsers, Optional.of(meeting));
+        for (User newParticipant : newParticipants) {
+            this.notificationService.sendNotificationNewMeetingParticipants(
+                    new NotificationMessage(newParticipant, meeting,
+                            UserType.PARTICIPANT, Optional.empty()));
+        }
     }
 
     @Override
@@ -225,11 +237,11 @@ public class MeetingServiceImpl implements MeetingService {
         User user = getUserByEmail(voteInput.getUserEmail());
         MeetingParticipant meetingParticipant = this.meetingParticipantRepository.findAllByUserAndAndMeeting(user, meeting);
 
-        if(meetingParticipant.isIfVoted()){
+        if (meetingParticipant.isIfVoted()) {
             throw new ParticipantAlreadyVotedException(String.format("The participant with email: %s has already voted", user.getEmail()));
         }
 
-        Set<Vote> votesToSave = new HashSet<>();
+        List<Vote> votesToSave = new ArrayList<>();
         votesToSave.addAll(createVotes(voteInput.getLowPriorityTimeSlots(),
                 Vote.Priority.LOW, meeting, user));
         votesToSave.addAll(createVotes(voteInput.getHighPriorityTimeSlots(),
@@ -302,7 +314,7 @@ public class MeetingServiceImpl implements MeetingService {
                 .build();
     }
 
-    private Set<Vote> createVotes(Set<LocalDateTime> timeSlots,
+    private Set<Vote> createVotes(List<LocalDateTime> timeSlots,
                                   Vote.Priority priority,
                                   Meeting meeting,
                                   User user) {
@@ -311,7 +323,7 @@ public class MeetingServiceImpl implements MeetingService {
             Vote vote = Vote.builder()
                     .meeting(meeting)
                     .priority(priority)
-                    .timeStart(timeSlot)
+                    .dateTimeStart(timeSlot)
                     .user(user)
                     .build();
             votes.add(vote);
@@ -358,17 +370,17 @@ public class MeetingServiceImpl implements MeetingService {
         newMeeting.setDateTimeUpdated(LocalDateTime.now());
         newMeeting.setDateTimeToDelete(LocalDateTime.now().plusMonths(3));
         newMeeting.setDuration(meetingData.getDuration());
+        newMeeting.setVotingDeadline(meetingData.getVotingDeadline());
 
         if (existingMeetingOptional.isEmpty()) {
             newMeeting.setOrganizer(organizer);
             newMeeting.setDateTimeCreated(LocalDateTime.now());
             newMeeting.setOrganizerToken(UUID.randomUUID());
             newMeeting.setIsVotingOpened(true);
-            newMeeting.setVotingDeadline(meetingData.getVotingDeadline());
         }
 
+        // Save participants
         List<MeetingParticipant> participantsToSave = new ArrayList<>();
-
         for (User participant : participants) {
             MeetingParticipant participantToSave = MeetingParticipant.builder()
                     .id(MeetingParticipantId.builder()
@@ -381,12 +393,31 @@ public class MeetingServiceImpl implements MeetingService {
             participantsToSave.add(participantToSave);
         }
 
-        // Save the meeting participants.
-        List<MeetingParticipant> finalParticipantsList = newMeeting.getParticipants() != null
-                ? newMeeting.getParticipants() : new ArrayList<>();
-        finalParticipantsList.addAll(participantsToSave);
+        if (Objects.nonNull(newMeeting.getParticipants())) {
+            newMeeting.getParticipants().clear();
+            newMeeting.getParticipants().addAll(participantsToSave);
+        } else {
+            newMeeting.setParticipants(participantsToSave);
+        }
 
-        newMeeting.setParticipants(finalParticipantsList);
+
+        // Save time slots
+        List<TimeSlot> slotsToAdd = new ArrayList<>();
+        for (NewMeeting.TimeSlot dateOption : meetingData.getTimeSlots()) {
+            slotsToAdd.add(
+                    com.team_36.cm2020.api_service.entities.TimeSlot.builder()
+                            .dateTimeStart(dateOption.getDateTimeStart())
+                            .meeting(newMeeting)
+                            .priority(dateOption.getPriority())
+                            .build()
+            );
+        }
+        if (Objects.nonNull(newMeeting.getTimeSlots())) {
+            newMeeting.getTimeSlots().clear();
+            newMeeting.getTimeSlots().addAll(slotsToAdd);
+        } else {
+            newMeeting.setTimeSlots(slotsToAdd);
+        }
 
         // Save the meeting to the database.
         Meeting savedMeeting = this.meetingRepository.save(newMeeting);
@@ -396,6 +427,20 @@ public class MeetingServiceImpl implements MeetingService {
     }
 
     private User checkIfExistsAndCreateUser(String email, String name) {
+        Optional<User> user = userRepository.findUserByEmail(email);
+        if (user.isEmpty()) {
+            log.debug("User with email: {} does not exist, creating new user", email);
+            User newCreator = User.builder()
+                    .email(email)
+                    .name(name)
+                    .isRegistered(false)
+                    .build();
+            return this.userRepository.save(newCreator);
+        }
+        return user.get();
+    }
+
+    private User checkIfExistsAndCreateTimeSlot(String email, String name) {
         Optional<User> user = userRepository.findUserByEmail(email);
         if (user.isEmpty()) {
             log.debug("User with email: {} does not exist, creating new user", email);

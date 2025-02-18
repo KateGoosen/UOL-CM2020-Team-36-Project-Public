@@ -18,9 +18,14 @@ public class GetMeetingForOrganizerResponse {
 
     private String title;
     private String description;
-    private LocalDateTime dateTimeCreated;
-    private LocalDateTime dateTimeUpdated;
-    private List<ParticipantResponse> participants;
     private Integer duration;
+    private OrganizerResponse organizer;
+    private List<ParticipantResponse> participants;
+    private List<TimeSlotResponse> timeSlots;
+    private LocalDateTime votingDeadLine;
+    private LocalDateTime finalDateTimeSlot;
+    private LocalDateTime dateTimeCreated;
+
+
 }
 

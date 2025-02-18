@@ -61,6 +61,9 @@ public class Meeting {
     @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Vote> votes;
 
+    @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TimeSlot> timeSlots;
+
     @Column(nullable = false)
     private Boolean isVotingOpened;
 

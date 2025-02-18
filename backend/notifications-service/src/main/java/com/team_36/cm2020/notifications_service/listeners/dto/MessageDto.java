@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -19,7 +21,7 @@ public class MessageDto implements Serializable {
     private UUID userId;
     private UUID organizerToken;
     private String userEmail;
-    private String meetingDateTime;
+    private LocalDateTime meetingDateTime;
     private Integer duration;
     private String confirmationCode;
 
@@ -30,7 +32,7 @@ public class MessageDto implements Serializable {
         this.userId = getUUIDFieldIfNotNull(messageJson, "userId");
         this.organizerToken = getUUIDFieldIfNotNull(messageJson, "creatorToken");
         this.userEmail = getStringFieldIfNotNull(messageJson, "userEmail");
-        this.meetingDateTime = getStringFieldIfNotNull(messageJson, "meetingDateTime");
+        this.meetingDateTime = getLocalDateTimeFieldIfNotNull(messageJson, "meetingDateTime");
         this.confirmationCode = getStringFieldIfNotNull(messageJson, "confirmationCode");
         this.duration = getIntegerFieldIfNotNull(messageJson, "duration");
     }
@@ -48,5 +50,12 @@ public class MessageDto implements Serializable {
     private UUID getUUIDFieldIfNotNull(JsonNode messageJson, String fieldName) {
         JsonNode jsonNode = messageJson.get(fieldName);
         return jsonNode != null ? UUID.fromString(jsonNode.asText()) : null;
+    }
+
+    private LocalDateTime getLocalDateTimeFieldIfNotNull(JsonNode messageJson, String fieldName) {
+        JsonNode jsonNode = messageJson.get(fieldName);
+        return (jsonNode != null)
+                ? LocalDateTime.parse(jsonNode.asText(), DateTimeFormatter.ISO_DATE_TIME)
+                : null;
     }
 }

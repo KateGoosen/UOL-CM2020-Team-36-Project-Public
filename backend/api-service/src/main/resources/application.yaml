@@ -5,19 +5,11 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
+debug: true
 spring:
-
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
-
-  #  springdoc:
-#    api-docs:
-#      enabled: true
-#      path: /v3/api-docs
-#    swagger-ui:
-#      enabled: true
-#      path: /swagger-ui.html
   rabbitmq:
     host: localhost
     port: 5672
@@ -37,9 +29,6 @@ spring:
     hibernate:
       ddl-auto: validate # Prevent Hibernate from modifying schema
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-#  flyway:
-#    enabled: true
-#    baseline-on-migrate: true
 # TODO: Should be removed in production.
 logging:
   level:

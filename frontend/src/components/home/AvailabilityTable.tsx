@@ -10,7 +10,7 @@ import {
   differenceInMinutes,
   addWeeks,
 } from "date-fns";
-import { MarkedSlot, SelectedSlot } from "@/pages/Home";
+import { MarkedSlot, SelectedSlot } from "@/pages/ScheduleMeeting";
 
 interface AvailabilityTableProps {
   selectedSlots: SelectedSlot[];
@@ -71,7 +71,7 @@ const AvailabilityTable: FC<AvailabilityTableProps> = ({
   }, []);
 
   return (
-    <div className='flex flex-col w-[70%] relative'>
+    <div className='flex flex-col w-[60%] relative'>
       {/* HEADER */}
       <div className='flex flex-row justify-between items-center p-4 border border-black rounded-t-md'>
         <div>
@@ -102,7 +102,7 @@ const AvailabilityTable: FC<AvailabilityTableProps> = ({
         ))}
       </div>
       {/* HOURS */}
-      <div className='relative'>
+      <div className='relative max-h-[500px] overflow-scroll'>
         {hours.map((hour, rowIndex) => (
           <div key={rowIndex} className='flex flex-row items-center'>
             {/* Hour rectangle */}

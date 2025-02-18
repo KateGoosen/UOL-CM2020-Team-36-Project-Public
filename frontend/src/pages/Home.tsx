@@ -1,158 +1,108 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Card,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/shadcdn/ui/card";
-import AvailabilityTable from "@/components/home/AvailabilityTable";
 import { Button } from "@/components/shadcdn/ui/button";
 import { useNavigate } from "react-router";
 import Header from "@/components/Header";
-
-export interface SelectedSlot {
-  day: string;
-  hour: number;
-  period: string;
-}
-
-export interface MarkedSlot {
-  day: string;
-  hour: number;
-  period: string;
-  availabilityType: "available" | "mostly-available";
-}
+import MeetingImage from "@/assets/meeting.png";
 
 const Home = () => {
-  const [availabilitySelection, setAvailabilitySelection] = useState<
-    "available" | "mostly-available"
-  >("available");
-  const [selectedSlots, setSelectedSlots] = useState<SelectedSlot[]>([]);
-  const [markedSlots, setMarkedSlots] = useState<MarkedSlot[]>([]);
   const navigate = useNavigate();
-
-  const handleMarkSelectedSlots = () => {
-    setMarkedSlots([
-      ...markedSlots,
-      ...selectedSlots.map((sl) => {
-        return { ...sl, availabilityType: availabilitySelection };
-      }),
-    ]);
-    setSelectedSlots([]);
-  };
-
-  const handleUnmarkSelectedSlots = () => {
-    setMarkedSlots(
-      markedSlots.filter(
-        (ms) =>
-          !selectedSlots.some(
-            (sl) =>
-              sl.day === ms.day &&
-              sl.hour === ms.hour &&
-              sl.period === ms.period
-          )
-      )
-    );
-    setSelectedSlots([]);
-  };
 
   const handleScheduleMeeting = () => {
     navigate("/schedule-meeting");
   };
 
-  const handleShowScheduledMeetings = () => {
-    navigate("/view-scheduled-meetings");
-  };
-
   return (
     <div>
       <Header />
-      <div className='pt-[100px] px-[50px] flex flex-col'>
-        <div className='flex flex-row gap-[50px]'>
-          <Card
-            className='w-[350px] bg-primary pb-5 cursor-pointer'
-            onClick={handleScheduleMeeting}
-          >
-            <CardHeader>
-              <CardTitle className='text-xl'>Schedule meeting</CardTitle>
-              <CardDescription>
-                Create a meeting task by specifying the duration and date range
-                for scheduling.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-          <Card
-            className='w-[350px] bg-primary pb-5 cursor-pointer'
-            onClick={handleShowScheduledMeetings}
-          >
-            <CardHeader>
-              <CardTitle className='text-xl'>View Scheduled Meetings</CardTitle>
-              <CardDescription>
-                Access a list of all scheduled meetings with their details.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-        <p className='text-black font-light mt-[72px] text-2xl mb-8'>
-          My availability
+      <div className='pt-[50px] pb-[100px] px-[150px] flex flex-col'>
+        <h2 className='self-center text-2xl font-semibold'>
+          Effortless meeting scheduling
+        </h2>
+        <p className='font-medium text-xl mt-[60px]'>
+          Schedule meetings seamlessly, find the best time for <br /> everyone,
+          and stay organized.
         </p>
-        <div className='flex flex-row justify-between pb-[100px]'>
-          <AvailabilityTable
-            selectedSlots={selectedSlots}
-            setSelectedSlots={setSelectedSlots}
-            markedSlots={markedSlots}
-          />
-          <Card className='bg-white border border-black h-[350px] ml-[50px] fixed right-[50px]'>
-            <CardHeader>
-              <CardTitle className='text-xl'>Set Availability</CardTitle>
-              <CardDescription>
-                <div className='flex flex-col gap-2 mt-8'>
-                  <p>Green: Preferred meeting times.</p>
-                  <p>Yellow: Less desirable times but manageable if needed.</p>
-                  <p>Not marked: Times they are absolutely unavailable.</p>
-                </div>
-
-                <div className='flex flex-row gap-8 mt-4'>
-                  <div
-                    className='h-12 w-12 border-black bg-secondary cursor-pointer'
-                    style={{
-                      borderWidth:
-                        availabilitySelection === "available" ? 2 : 1,
-                    }}
-                    onClick={() => setAvailabilitySelection("available")}
-                  />
-                  <div
-                    className='h-12 w-12 border-2 border-black bg-mainYellow cursor-pointer'
-                    style={{
-                      borderWidth:
-                        availabilitySelection === "mostly-available" ? 2 : 1,
-                    }}
-                    onClick={() => setAvailabilitySelection("mostly-available")}
-                  />
-                </div>
-              </CardDescription>
-              <CardFooter
-                style={{
-                  marginTop: 50,
-                  gap: 24,
-                }}
-              >
-                <Button
-                  className='bg-primary flex-1 self-center'
-                  onClick={handleMarkSelectedSlots}
-                >
-                  Mark selection
-                </Button>
-                <Button
-                  className='bg-red-400 flex-1 self-center hover:bg-red-600'
-                  onClick={handleUnmarkSelectedSlots}
-                >
-                  Unmark selection
-                </Button>
-              </CardFooter>
-            </CardHeader>
+        <div className='flex flex-row mt-8 h-[400px] gap-8 justify-between'>
+          {/* Card */}
+          <Card className='p-8 rounded-2xl border-black flex-1 max-w-[50%] h-full'>
+            <CardDescription className='h-full'>
+              <ul className='h-full flex flex-col justify-evenly font-medium text-lg'>
+                <li>
+                  Smart Scheduling: Automatically finds the best time slots for
+                  all participants.
+                </li>
+                <li>
+                  Voting System: Participants vote on available time slots.
+                </li>
+                <li>
+                  Organizer Controls: Manage, edit, or cancel meetings with
+                  ease.
+                </li>
+                <li>Timezone Support: Works across different time zones.</li>
+                <li>
+                  Reminders & Notifications: Get notified when participants vote
+                  or changes occur.
+                </li>
+              </ul>
+            </CardDescription>
           </Card>
+
+          {/* Image */}
+          <div className='flex'>
+            <img
+              src={MeetingImage}
+              alt='Meeting Illustration'
+              className='rounded-2xl h-full w-auto object-cover'
+            />
+          </div>
+        </div>
+        <Button
+          className='w-[350px] bg-[#b4c1ff] mt-8 self-center hover:bg-blue-500 cursor-pointer'
+          onClick={handleScheduleMeeting}
+        >
+          Schedule meeting
+        </Button>
+
+        {/* Steps Section */}
+        <div className='flex flex-row items-center justify-center mt-12 gap-6'>
+          {[
+            {
+              title: "Create a Meeting",
+              description: "Set up a meeting with possible time slots.",
+            },
+            {
+              title: "Invite Participants",
+              description: "Share a unique link for voting.",
+            },
+            {
+              title: "Vote on Time Slots",
+              description: "Participants select their availability.",
+            },
+            {
+              title: "Confirm the Meeting",
+              description: "The app picks the best slot based on votes.",
+            },
+          ].map((step, index) => (
+            <React.Fragment key={step.title}>
+              <Card className='rounded-full w-[200px] h-[200px] flex items-start justify-center text-center p-4'>
+                <CardHeader>
+                  <CardTitle className='text-lg'>{step.title}</CardTitle>
+                  <CardDescription className='text-sm'>
+                    {step.description}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+              {index < 3 && (
+                <span className='text-2xl font-bold text-gray-500'>→</span>
+              )}
+            </React.Fragment>
+          ))}
         </div>
       </div>
     </div>

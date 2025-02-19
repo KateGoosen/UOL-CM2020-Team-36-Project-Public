@@ -14,6 +14,7 @@ import { MdArrowBack, MdDelete } from "react-icons/md";
 import { useNavigate } from "react-router";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import api from "@/api/axios";
 
 export interface SelectedSlot {
   day: string;
@@ -139,8 +140,43 @@ const ScheduleMeeting = () => {
     navigate("/");
   };
 
-  const handleConfirmSchedule = () => {
-    console.log({ durationHours, durationMinutes, dateFrom, dateTo });
+  const handleConfirmSchedule = async () => {
+    try {
+      const response = await api.post("api/meeting/new", {
+        title: "Project Kickoff Meeting",
+        description:
+          "Initial meeting to discuss project scope, responsibilities, and timeline.",
+        timeSlots: [
+          {
+            dateTimeStart: "2025-02-19T10:00:00.000Z",
+            priority: "HIGH",
+          },
+        ],
+        duration: 3600,
+        participants: [
+          {
+            name: "Alice Johnson",
+            email: "alice.johnson@example.com",
+          },
+          {
+            name: "Bob Smith",
+            email: "bob.smith@example.com",
+          },
+        ],
+        organizer: {
+          name: "John Doe",
+          email: "john.doe@example.com",
+        },
+        votingDeadline: "2025-02-18T23:59:59.000Z",
+      });
+
+      console.log("Meeting created successfully:", response.data);
+    } catch (error) {
+      console.error(
+        "Error creating meeting:",
+        error.response?.data || error.message
+      );
+    }
   };
 
   return (

@@ -330,6 +330,11 @@ public class MeetingServiceImpl implements MeetingService {
                 .build();
     }
 
+    @Override
+    public List<Meeting> findMeetingsWithExpiredVotingDeadline() {
+        return this.meetingRepository.findAllByVotingDeadlineLessThan(LocalDateTime.now());
+    }
+
     private Set<Vote> createVotes(List<LocalDateTime> timeSlots,
                                   Vote.Priority priority,
                                   Meeting meeting,

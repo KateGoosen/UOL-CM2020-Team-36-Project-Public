@@ -3,6 +3,7 @@ package com.team_36.cm2020.api_service.entities;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.team_36.cm2020.api_service.enums.Priority;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -45,8 +46,5 @@ public class Vote {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    public enum Priority {
-        HIGH, LOW
-    }
 
 }

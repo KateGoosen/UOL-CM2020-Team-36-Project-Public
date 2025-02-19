@@ -19,6 +19,7 @@ import com.team_36.cm2020.api_service.input.VoteInput;
 import com.team_36.cm2020.api_service.messaging.RabbitMQProducer;
 import com.team_36.cm2020.api_service.output.CreateMeetingResponse;
 import com.team_36.cm2020.api_service.output.GetMeetingForOrganizerResponse;
+import com.team_36.cm2020.api_service.output.MeetingDataForOrganizerResponse;
 import com.team_36.cm2020.api_service.output.MeetingDataForParticipantResponse;
 import com.team_36.cm2020.api_service.output.OrganizerResponse;
 import com.team_36.cm2020.api_service.output.ParticipantResponse;
@@ -279,6 +280,21 @@ public class MeetingServiceImpl implements MeetingService {
                 .collect(Collectors.toSet());
 
         return response;
+    }
+
+    @Override
+    public List<MeetingDataForOrganizerResponse> getOrganizedMeetingsByEmail(String userEmail) {
+        User user = getUserByEmail(userEmail);
+
+        return meetingRepository.findAllByOrganizer(user).stream()
+                .map(meeting -> MeetingDataForOrganizerResponse.builder()
+                        .title(meeting.getTitle())
+                        .description(meeting.getDescription())
+                        .duration(meeting.getDuration())
+                        .isVotingOpened(meeting.getIsVotingOpened())
+                        .finalTimeSlot(meeting.getFinalTimeSlot())
+                        .build())
+                .toList();
     }
 
     @Override

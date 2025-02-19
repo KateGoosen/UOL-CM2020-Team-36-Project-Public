@@ -1,8 +1,10 @@
 package com.team_36.cm2020.api_service.controllers;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.team_36.cm2020.api_service.output.MeetingDataForOrganizerResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -92,6 +94,14 @@ public class MeetingController {
     public ResponseEntity<Set<MeetingDataForParticipantResponse>> getMeetingsByEmail(
             @PathVariable(name = "user_email") String userEmail) {
         Set<MeetingDataForParticipantResponse> response = meetingService.getMeetingsByEmail(userEmail);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "Get meetings by user's email (organizer)")
+    @GetMapping("/organizer/{user_email}")
+    public ResponseEntity<List<MeetingDataForOrganizerResponse>> getOrganizedMeetingsByEmail(
+            @PathVariable(name = "user_email") String userEmail) {
+        List<MeetingDataForOrganizerResponse> response = meetingService.getOrganizedMeetingsByEmail(userEmail);
         return ResponseEntity.ok().body(response);
     }
 

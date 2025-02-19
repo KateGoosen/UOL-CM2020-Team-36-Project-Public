@@ -13,6 +13,7 @@ import com.team_36.cm2020.api_service.input.VoteInput;
 import com.team_36.cm2020.api_service.messaging.RabbitMQProducer;
 import com.team_36.cm2020.api_service.output.CreateMeetingResponse;
 import com.team_36.cm2020.api_service.output.GetMeetingForOrganizerResponse;
+import com.team_36.cm2020.api_service.output.MeetingDataForOrganizerResponse;
 import com.team_36.cm2020.api_service.output.MeetingDataForParticipantResponse;
 import com.team_36.cm2020.api_service.repositories.MeetingParticipantRepository;
 import com.team_36.cm2020.api_service.repositories.MeetingRepository;
@@ -37,12 +38,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anySet;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
@@ -213,7 +214,6 @@ class MeetingServiceImplTest {
         assertThrows(RuntimeException.class, () -> meetingService.editMeeting(meetingId, organizerToken, meetingData));
     }
 
-
     @Test
     @Transactional
     void testDeleteMeeting_Success() {
@@ -383,5 +383,35 @@ class MeetingServiceImplTest {
 
         assertThrows(UserIsNotParticipantOfTheMeetingException.class, () ->
                 meetingService.viewMeetingDetailsByParticipant(meetingId, userEmail));
+    }
+
+    @Test
+    void testGetOrganizedMeetingsByEmail() {
+        Meeting mockMeeting1 = Meeting.builder()
+                .title("Title 1")
+                .duration(12414)
+                .build();
+        Meeting mockMeeting2 = Meeting.builder()
+                .title("Title 1")
+                .duration(6453)
+                .build();
+
+        when(this.userRepository.findUserByEmail(organizerEmail)).thenReturn(Optional.ofNullable(organizer));
+        when(meetingRepository.findAllByOrganizer(organizer)).thenReturn(List.of(mockMeeting1, mockMeeting2));
+
+        List<MeetingDataForOrganizerResponse> responseList = meetingService.getOrganizedMeetingsByEmail(organizerEmail);
+
+        assertNotNull(responseList);
+        assertEquals(2, responseList.size());
+
+        MeetingDataForOrganizerResponse response1 = responseList.get(0);
+        assertEquals(mockMeeting1.getTitle(), response1.getTitle());
+        assertEquals(mockMeeting1.getDuration(), response1.getDuration());
+
+        MeetingDataForOrganizerResponse response2 = responseList.get(1);
+        assertEquals(mockMeeting2.getTitle(), response2.getTitle());
+        assertEquals(mockMeeting2.getDuration(), response2.getDuration());
+
+        verify(this.userRepository).findUserByEmail(organizerEmail);
     }
 }

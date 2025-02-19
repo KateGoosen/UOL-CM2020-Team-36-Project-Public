@@ -5,8 +5,10 @@ import com.team_36.cm2020.api_service.input.NewMeeting;
 import com.team_36.cm2020.api_service.input.VoteInput;
 import com.team_36.cm2020.api_service.output.CreateMeetingResponse;
 import com.team_36.cm2020.api_service.output.GetMeetingForOrganizerResponse;
+import com.team_36.cm2020.api_service.output.MeetingDataForOrganizerResponse;
 import com.team_36.cm2020.api_service.output.MeetingDataForParticipantResponse;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -69,6 +71,14 @@ public interface MeetingService {
      * @return set of {@link MeetingDataForParticipantResponse}
      */
     Set<MeetingDataForParticipantResponse> getMeetingsByEmail(String userEmail);
+
+    /**
+     * Get all meetings organized by a user
+     *
+     * @param userEmail user's email
+     * @return list of {@link MeetingDataForOrganizerResponse}
+     */
+    List<MeetingDataForOrganizerResponse> getOrganizedMeetingsByEmail(String userEmail);
 
     /**
      * Restore link for manipulating the meeting (the link is sent to the organizer's email)

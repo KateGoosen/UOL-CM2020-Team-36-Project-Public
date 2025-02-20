@@ -72,4 +72,11 @@ public class NotificationServiceImpl implements NotificationService {
                 NotificationType.LINK_RESTORE_ORGANIZER.getRoutingKey(),
                 notificationMessage);
     }
+
+    @Override
+    public void sendNotificationCommonTimeSlotsFoundOrganizer(NotificationMessage notificationMessage) {
+        sendNotification(NotificationType.COMMON_TIME_SLOTS_FOUND_ORGANIZER.getExchange(),
+                NotificationType.COMMON_TIME_SLOTS_FOUND_ORGANIZER.getRoutingKey(),
+                notificationMessage);
+    }
 }

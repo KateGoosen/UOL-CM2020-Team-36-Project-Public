@@ -20,6 +20,17 @@ public class MeetingNotificationListener {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final DateTimeFormatter customDateTimeFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy. HH:mm"); //TODO handle time zones!
 
+    @RabbitListener(queues = "common_time_slots_found_organizer")
+    public void receiveCommonTimeSlotsFoundOrganizerMessage(MessageDto message) {
+        String emailText = String.format("Dear %s,\n\nVoting for the meeting %s has been finished.\n\nPlease, proceed to choose a final date and time for your meeting:\nhttps://example.com/%s/%s/%s",
+                message.getUserName(),
+                message.getMeetingTitle(),
+                message.getMeetingId(),
+                message.getUserId(),
+                message.getOrganizerToken());
+        sendEmailAndWriteLog(message, emailText, "Voting finished");
+    }
+
     @RabbitListener(queues = "meeting_created_organizer")
     public void receiveMeetingCreatedOrganizerMessage(MessageDto message) {
         String emailText = String.format("Dear %s,\n\nA new meeting %s has been successfully created.\n\nPlease, save the link for further meeting management:\nhttps://example.com/%s/%s/%s",

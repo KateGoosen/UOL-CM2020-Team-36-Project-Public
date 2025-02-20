@@ -40,6 +40,7 @@ public class RabbitMQConfig {
     private static final String AUTH_LOGIN_CONFIRMATION_CODE = "auth_login_confirmation_code";
     private static final String AUTH_PASSWORD_RESET = "auth_password_reset";
     private static final String LINK_RESTORE_ORGANIZER = "link_restore_organizer";
+    private static final String COMMON_TIME_SLOTS_FOUND_ORGANIZER = "common_time_slots_found_organizer";
 
     // Define Routing Keys
     private static final String MEETING_CREATED_ORGANIZER_KEY = "meeting.created.organizer";
@@ -56,9 +57,12 @@ public class RabbitMQConfig {
     private static final String AUTH_LOGIN_CONFIRMATION_CODE_KEY = "auth.login.confirmation_code";
     private static final String AUTH_PASSWORD_RESET_KEY = "auth.password.reset";
     private static final String LINK_RESTORE_ORGANIZER_KEY = "link.restore.organizer";
+    private static final String COMMON_TIME_SLOTS_FOUND_ORGANIZER_KEY = "common.time.slots.found.organizer";
+
 
 
     private final AmqpAdmin amqpAdmin;
+
 
     // Define Exchanges
     @Bean
@@ -77,6 +81,11 @@ public class RabbitMQConfig {
     }
 
     // Define Queues
+    @Bean
+    public Queue commonTimeSlotsFoundOrganizerQueue() {
+        return new Queue(COMMON_TIME_SLOTS_FOUND_ORGANIZER, true);
+    }
+
     @Bean
     public Queue meetingCreatedOrganizerQueue() {
         return new Queue(MEETING_CREATED_ORGANIZER, true);
@@ -219,6 +228,11 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Binding bindCommonTimeSlotsFoundOrganizer() {
+        return BindingBuilder.bind(commonTimeSlotsFoundOrganizerQueue()).to(meetingExchange()).with(COMMON_TIME_SLOTS_FOUND_ORGANIZER_KEY);
+    }
+
+    @Bean
     public ApplicationRunner initializer() {
         return args -> {
             amqpAdmin.declareExchange(meetingExchange());
@@ -239,6 +253,7 @@ public class RabbitMQConfig {
             amqpAdmin.declareQueue(authLoginConfirmationCodeQueue());
             amqpAdmin.declareQueue(authPasswordResetQueue());
             amqpAdmin.declareQueue(linkRestoreOrganizerQueue());
+            amqpAdmin.declareQueue(commonTimeSlotsFoundOrganizerQueue());
 
             System.out.println("RabbitMQ: All exchanges and queues have been initialized.");
         };

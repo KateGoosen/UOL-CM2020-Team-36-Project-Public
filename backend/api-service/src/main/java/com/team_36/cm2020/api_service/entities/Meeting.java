@@ -73,4 +73,7 @@ public class Meeting {
     @Column
     private LocalDateTime votingDeadline;
 
+    @Column(name = "common_time_slots_calculated", nullable = false)
+    private boolean commonTimeSlotsCalculated = false;
+
 }

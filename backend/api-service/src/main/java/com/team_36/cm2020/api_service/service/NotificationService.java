@@ -15,5 +15,7 @@ public interface NotificationService {
     void sendNotificationVoteRegisteredParticipant(NotificationMessage notificationMessage);
     void sendNotificationLinkRestoreOrganizer(NotificationMessage notificationMessage);
 
+    void sendNotificationCommonTimeSlotsFoundOrganizer(NotificationMessage notificationMessage);
+
 
 }

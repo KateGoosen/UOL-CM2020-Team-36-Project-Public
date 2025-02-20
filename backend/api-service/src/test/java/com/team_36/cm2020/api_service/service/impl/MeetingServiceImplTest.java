@@ -5,6 +5,7 @@ import com.team_36.cm2020.api_service.entities.MeetingParticipant;
 import com.team_36.cm2020.api_service.entities.MeetingParticipantId;
 import com.team_36.cm2020.api_service.entities.User;
 import com.team_36.cm2020.api_service.entities.Vote;
+import com.team_36.cm2020.api_service.enums.Priority;
 import com.team_36.cm2020.api_service.exceptions.UserIsNotParticipantOfTheMeetingException;
 import com.team_36.cm2020.api_service.exceptions.VotingIsClosedException;
 import com.team_36.cm2020.api_service.input.FinalizeMeetingInput;
@@ -21,6 +22,7 @@ import com.team_36.cm2020.api_service.repositories.UserRepository;
 import com.team_36.cm2020.api_service.repositories.VoteRepository;
 import com.team_36.cm2020.api_service.rmq.NotificationMessage;
 import com.team_36.cm2020.api_service.service.NotificationService;
+import com.team_36.cm2020.api_service.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +40,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -63,7 +64,7 @@ class MeetingServiceImplTest {
     private MeetingRepository meetingRepository;
 
     @Mock
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Mock
     private MeetingParticipantRepository meetingParticipantRepository;
@@ -110,8 +111,8 @@ class MeetingServiceImplTest {
     @Transactional
     void testCreateMeeting_Success() {
         // Mock dependencies
-        when(userRepository.findUserByEmail(anyString())).thenReturn(Optional.of(organizer));
-        when(userRepository.findUserByEmail(anyString())).thenReturn(Optional.of(participant));
+        when(userService.getUserOptionalByEmail(anyString())).thenReturn(Optional.of(organizer));
+        when(userService.getUserOptionalByEmail(anyString())).thenReturn(Optional.of(participant));
         when(meetingRepository.save(any(Meeting.class))).thenReturn(meeting);
 
         // Execute
@@ -130,7 +131,7 @@ class MeetingServiceImplTest {
 
     @Test
     void testCreateMeeting_UserNotFound() {
-        when(userRepository.findUserByEmail(organizer.getEmail())).thenReturn(Optional.empty());
+        when(userService.getUserOptionalByEmail(organizer.getEmail())).thenReturn(Optional.empty());
         assertThrows(RuntimeException.class, () -> meetingService.createMeeting(meetingData));
     }
 
@@ -160,7 +161,7 @@ class MeetingServiceImplTest {
         vote.setUser(participant);
         vote.setMeeting(meeting);
         vote.setDateTimeStart(LocalDateTime.now());
-        vote.setPriority(Vote.Priority.HIGH);
+        vote.setPriority(Priority.HIGH);
         List<Vote> votes = List.of(vote);
         meeting.setVotes(votes);
 
@@ -197,7 +198,7 @@ class MeetingServiceImplTest {
 
         when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(meeting));
         when(meetingRepository.save(any())).thenReturn(meeting);
-        when(this.userRepository.save(any())).thenReturn(participant);
+        when(userService.saveUser(any())).thenReturn(participant);
 
         meetingService.editMeeting(meetingId, organizerToken, meetingData);
 
@@ -286,7 +287,7 @@ class MeetingServiceImplTest {
         meeting.getParticipants().forEach(participant -> participant.setIfVoted(false));
 
         when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(meeting));
-        when(userRepository.findUserByEmail(participantEmail)).thenReturn(Optional.of(participant));
+        when(userService.getUserByEmail(participantEmail)).thenReturn(participant);
         when(this.meetingParticipantRepository.findAllByUserAndAndMeeting(any(), any()))
                 .thenReturn(MeetingParticipant.builder().ifVoted(false).build());
 
@@ -322,7 +323,7 @@ class MeetingServiceImplTest {
 
     @Test
     void testGetMeetingsByEmail_Success() {
-        when(userRepository.findUserByEmail(participantEmail)).thenReturn(Optional.of(participant));
+        when(userService.getUserByEmail(participantEmail)).thenReturn(participant);
         when(meetingParticipantRepository.findAllByUser(participant)).thenReturn(Collections.emptyList());
 
         Set<MeetingDataForParticipantResponse> response = meetingService.getMeetingsByEmail(participantEmail);
@@ -360,7 +361,7 @@ class MeetingServiceImplTest {
                 meeting, participant, false)));
 
         when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(meeting));
-        when(userRepository.findUserByEmail(participantEmail)).thenReturn(Optional.of(participant));
+        when(userService.getUserByEmail(participantEmail)).thenReturn(participant);
 
         MeetingDataForParticipantResponse response = meetingService.viewMeetingDetailsByParticipant(meetingId, participantEmail);
 
@@ -379,7 +380,7 @@ class MeetingServiceImplTest {
         meeting.setMeetingId(meetingId);
 
         when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(meeting));
-        when(userRepository.findUserByEmail(userEmail)).thenReturn(Optional.of(user));
+        when(userService.getUserByEmail(userEmail)).thenReturn(user);
 
         assertThrows(UserIsNotParticipantOfTheMeetingException.class, () ->
                 meetingService.viewMeetingDetailsByParticipant(meetingId, userEmail));
@@ -396,7 +397,7 @@ class MeetingServiceImplTest {
                 .duration(6453)
                 .build();
 
-        when(this.userRepository.findUserByEmail(organizerEmail)).thenReturn(Optional.ofNullable(organizer));
+        when(userService.getUserByEmail(organizerEmail)).thenReturn(organizer);
         when(meetingRepository.findAllByOrganizer(organizer)).thenReturn(List.of(mockMeeting1, mockMeeting2));
 
         List<MeetingDataForOrganizerResponse> responseList = meetingService.getOrganizedMeetingsByEmail(organizerEmail);
@@ -412,6 +413,6 @@ class MeetingServiceImplTest {
         assertEquals(mockMeeting2.getTitle(), response2.getTitle());
         assertEquals(mockMeeting2.getDuration(), response2.getDuration());
 
-        verify(this.userRepository).findUserByEmail(organizerEmail);
+        verify(userService).getUserByEmail(organizerEmail);
     }
 }

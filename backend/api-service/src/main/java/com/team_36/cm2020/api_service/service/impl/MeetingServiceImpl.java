@@ -6,10 +6,10 @@ import com.team_36.cm2020.api_service.entities.MeetingParticipantId;
 import com.team_36.cm2020.api_service.entities.TimeSlot;
 import com.team_36.cm2020.api_service.entities.User;
 import com.team_36.cm2020.api_service.entities.Vote;
+import com.team_36.cm2020.api_service.enums.Priority;
 import com.team_36.cm2020.api_service.enums.UserType;
 import com.team_36.cm2020.api_service.exceptions.NoMeetingFoundException;
 import com.team_36.cm2020.api_service.exceptions.NoPrivilegeToAccessException;
-import com.team_36.cm2020.api_service.exceptions.NoUserFoundException;
 import com.team_36.cm2020.api_service.exceptions.ParticipantAlreadyVotedException;
 import com.team_36.cm2020.api_service.exceptions.UserIsNotParticipantOfTheMeetingException;
 import com.team_36.cm2020.api_service.exceptions.VotingIsClosedException;
@@ -24,14 +24,15 @@ import com.team_36.cm2020.api_service.output.MeetingDataForParticipantResponse;
 import com.team_36.cm2020.api_service.output.OrganizerResponse;
 import com.team_36.cm2020.api_service.output.ParticipantResponse;
 import com.team_36.cm2020.api_service.output.TimeSlotResponse;
+import com.team_36.cm2020.api_service.repositories.CommonTimeSlotRepository;
 import com.team_36.cm2020.api_service.repositories.MeetingParticipantRepository;
 import com.team_36.cm2020.api_service.repositories.MeetingRepository;
 import com.team_36.cm2020.api_service.repositories.TimeSlotRepository;
-import com.team_36.cm2020.api_service.repositories.UserRepository;
 import com.team_36.cm2020.api_service.repositories.VoteRepository;
 import com.team_36.cm2020.api_service.rmq.NotificationMessage;
 import com.team_36.cm2020.api_service.service.MeetingService;
 import com.team_36.cm2020.api_service.service.NotificationService;
+import com.team_36.cm2020.api_service.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,10 +58,9 @@ public class MeetingServiceImpl implements MeetingService {
     private final NotificationService notificationService;
 
     private final MeetingRepository meetingRepository;
-    private final UserRepository userRepository;
     private final MeetingParticipantRepository meetingParticipantRepository;
     private final VoteRepository voteRepository;
-    private final TimeSlotRepository timeSlotRepository;
+    private final UserService userService;
 
     @Override
     @Transactional
@@ -121,14 +121,14 @@ public class MeetingServiceImpl implements MeetingService {
                             .timeSlotsLowPriority(ifVoted
                                     ? voteMap.get(participant.getUser().getUserId()).stream()
                                     .filter(vote -> vote.getPriority()
-                                            .equals(Vote.Priority.LOW))
+                                            .equals(Priority.LOW))
                                     .map(Vote::getDateTimeStart)
                                     .collect(Collectors.toSet())
                                     : new HashSet<>())
                             .timeSlotsHighPriority(ifVoted
                                     ? voteMap.get(participant.getUser().getUserId()).stream()
                                     .filter(vote -> vote.getPriority()
-                                            .equals(Vote.Priority.HIGH))
+                                            .equals(Priority.HIGH))
                                     .map(Vote::getDateTimeStart)
                                     .collect(Collectors.toSet())
                                     : new HashSet<>())
@@ -235,7 +235,7 @@ public class MeetingServiceImpl implements MeetingService {
             throw new VotingIsClosedException("Voting is closed!");
         }
 
-        User user = getUserByEmail(voteInput.getUserEmail());
+        User user = userService.getUserByEmail(voteInput.getUserEmail());
         MeetingParticipant meetingParticipant = this.meetingParticipantRepository.findAllByUserAndAndMeeting(user, meeting);
 
         if (meetingParticipant.isIfVoted()) {
@@ -244,9 +244,9 @@ public class MeetingServiceImpl implements MeetingService {
 
         List<Vote> votesToSave = new ArrayList<>();
         votesToSave.addAll(createVotes(voteInput.getLowPriorityTimeSlots(),
-                Vote.Priority.LOW, meeting, user));
+                Priority.LOW, meeting, user));
         votesToSave.addAll(createVotes(voteInput.getHighPriorityTimeSlots(),
-                Vote.Priority.HIGH, meeting, user));
+                Priority.HIGH, meeting, user));
 
         this.voteRepository.saveAll(votesToSave);
 
@@ -263,7 +263,7 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     public Set<MeetingDataForParticipantResponse> getMeetingsByEmail(String userEmail) {
-        User user = getUserByEmail(userEmail);
+        User user = userService.getUserByEmail(userEmail);
 
         Set<MeetingDataForParticipantResponse> response = this.meetingParticipantRepository.findAllByUser(user)
                 .stream()
@@ -284,7 +284,7 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     public List<MeetingDataForOrganizerResponse> getOrganizedMeetingsByEmail(String userEmail) {
-        User user = getUserByEmail(userEmail);
+        User user = userService.getUserByEmail(userEmail);
 
         return meetingRepository.findAllByOrganizer(user).stream()
                 .map(meeting -> MeetingDataForOrganizerResponse.builder()
@@ -309,7 +309,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     public MeetingDataForParticipantResponse viewMeetingDetailsByParticipant(UUID meetingId, String userEmail) {
         Meeting meeting = getMeetingIfExistsById(meetingId);
-        User user = getUserByEmail(userEmail);
+        User user = userService.getUserByEmail(userEmail);
 
         boolean userIsParticipantOfTheMeeting = meeting.getParticipants().stream()
                 .map(MeetingParticipant::getUser)
@@ -336,7 +336,7 @@ public class MeetingServiceImpl implements MeetingService {
     }
 
     private Set<Vote> createVotes(List<LocalDateTime> timeSlots,
-                                  Vote.Priority priority,
+                                  Priority priority,
                                   Meeting meeting,
                                   User user) {
         Set<Vote> votes = new HashSet<>();
@@ -352,15 +352,8 @@ public class MeetingServiceImpl implements MeetingService {
         return votes;
     }
 
-    private User getUserByEmail(String email) {
-        Optional<User> userOptional = this.userRepository.findUserByEmail(email);
-        if (userOptional.isEmpty()) {
-            throw new NoUserFoundException(String.format("No user found with email: %s", email));
-        }
-        return userOptional.get();
-    }
 
-    private Meeting getMeetingIfExistsById(UUID meetingId) {
+    public Meeting getMeetingIfExistsById(UUID meetingId) {
         Optional<Meeting> meetingOptional = this.meetingRepository.findById(meetingId);
         if (meetingOptional.isEmpty()) {
             throw new NoMeetingFoundException(
@@ -369,7 +362,7 @@ public class MeetingServiceImpl implements MeetingService {
         return meetingOptional.get();
     }
 
-    private void checkOrganizerToken(UUID organizerToken, Meeting meeting) {
+    public void checkOrganizerToken(UUID organizerToken, Meeting meeting) {
         boolean organizerTokenMatches = meeting.getOrganizerToken().equals(organizerToken);
         if (!organizerTokenMatches) {
             throw new NoPrivilegeToAccessException(
@@ -448,7 +441,7 @@ public class MeetingServiceImpl implements MeetingService {
     }
 
     private User checkIfExistsAndCreateUser(String email, String name) {
-        Optional<User> user = userRepository.findUserByEmail(email);
+        Optional<User> user = userService.getUserOptionalByEmail(email);
         if (user.isEmpty()) {
             log.debug("User with email: {} does not exist, creating new user", email);
             User newCreator = User.builder()
@@ -456,21 +449,7 @@ public class MeetingServiceImpl implements MeetingService {
                     .name(name)
                     .isRegistered(false)
                     .build();
-            return this.userRepository.save(newCreator);
-        }
-        return user.get();
-    }
-
-    private User checkIfExistsAndCreateTimeSlot(String email, String name) {
-        Optional<User> user = userRepository.findUserByEmail(email);
-        if (user.isEmpty()) {
-            log.debug("User with email: {} does not exist, creating new user", email);
-            User newCreator = User.builder()
-                    .email(email)
-                    .name(name)
-                    .isRegistered(false)
-                    .build();
-            return this.userRepository.save(newCreator);
+            return userService.saveUser(newCreator);
         }
         return user.get();
     }

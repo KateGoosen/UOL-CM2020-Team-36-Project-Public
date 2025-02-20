@@ -14,7 +14,8 @@ public enum NotificationType {
     AUTH_SIGNUP_SUCCESS("auth.exchange", "auth.signup.success"),
     AUTH_LOGIN_CONFIRMATION("auth.exchange", "auth.login.confirmation_code"),
     AUTH_PASSWORD_RESET("auth.exchange", "auth.password.reset"),
-    LINK_RESTORE_ORGANIZER("meeting.exchange", "link.restore.organizer");
+    LINK_RESTORE_ORGANIZER("meeting.exchange", "link.restore.organizer"),
+    COMMON_TIME_SLOTS_FOUND_ORGANIZER("meeting.exchange", "common.time.slots.found.organizer");
 
 
     private final String exchange;

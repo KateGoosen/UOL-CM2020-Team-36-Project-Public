@@ -56,8 +56,6 @@ const EditMeeting = () => {
   ]);
   const [durationMinutes, setDurationMinutes] = useState(0);
   const [durationHours, setDurationHours] = useState(0);
-  // const [dateFrom, setDateFrom] = useState<string>(todayStr);
-  // const [dateTo, setDateTo] = useState<string>(todayStr);
   const [availabilitySelection, setAvailabilitySelection] = useState<
     "HIGH" | "LOW"
   >("HIGH");
@@ -92,6 +90,11 @@ const EditMeeting = () => {
     if (meeting.data) {
       setMeetingData(meeting.data);
     }
+  };
+
+  const handleDeleteMeeting = async () => {
+    await api.delete(`api/meeting/${meetingId}/${organizerToken}`);
+    navigate("/");
   };
 
   useEffect(() => {
@@ -204,7 +207,10 @@ const EditMeeting = () => {
           onClick={handleGoBack}
         />
         <p className='text-2xl font-semibold text-center'>Edit Meeting</p>
-        <Button style={{ backgroundColor: "#FC9593" }}>
+        <Button
+          style={{ backgroundColor: "#FC9593" }}
+          onClick={handleDeleteMeeting}
+        >
           Delete the meeting
         </Button>
       </div>

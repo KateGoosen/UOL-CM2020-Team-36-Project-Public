@@ -15,8 +15,14 @@ import { useNavigate } from "react-router";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import api from "@/api/axios";
-import { MarkedSlot, Participant, SelectedSlot } from "@/types";
-import { convertToDateTimeStart, convertToSeconds } from "@/helpers";
+import { useParams } from "react-router";
+import { MarkedSlot, Meeting, Participant, SelectedSlot } from "@/types";
+import {
+  convertFromDateTimeStart,
+  convertToDateTimeStart,
+  convertToHoursAndMinutes,
+  convertToSeconds,
+} from "@/helpers";
 
 const InputWithLabel = ({
   onChange,
@@ -37,8 +43,10 @@ const InputWithLabel = ({
   );
 };
 
-const ScheduleMeeting = () => {
+const EditMeeting = () => {
   const navigate = useNavigate();
+  const { meetingId, organizerToken } = useParams();
+  const [meetingData, setMeetingData] = useState<Meeting | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [organizerName, setOrganizerName] = useState("");
@@ -57,15 +65,37 @@ const ScheduleMeeting = () => {
   const [markedSlots, setMarkedSlots] = useState<MarkedSlot[]>([]);
   const [votingDeadline, setVotingDeadline] = useState<Date | null>(new Date());
 
-  const handleGetMeetings = async () => {
-    const meetings = await api.get(
-      "api/meeting/organizer/john.doe@example.com"
-    );
-    console.log("meetings", meetings);
+  useEffect(() => {
+    if (meetingData) {
+      setTitle(meetingData?.title ?? "");
+      setDescription(meetingData?.description ?? "");
+      setOrganizerName(meetingData?.organizer?.name ?? "");
+      setOrganizerEmail(meetingData?.organizer?.email ?? "");
+      setParticipants(meetingData?.participants);
+      const { hours, minutes } = convertToHoursAndMinutes(
+        meetingData?.duration
+      );
+      setDurationHours(hours);
+      setDurationMinutes(minutes);
+      if (meetingData?.timeSlots?.length) {
+        const timeSlotsFormatted = convertFromDateTimeStart(
+          meetingData?.timeSlots
+        );
+        console.log("timeslots formatted", timeSlotsFormatted);
+        setMarkedSlots(timeSlotsFormatted);
+      }
+    }
+  }, [meetingData]);
+
+  const handleGetMeeting = async () => {
+    const meeting = await api.get(`api/meeting/${meetingId}/${organizerToken}`);
+    if (meeting.data) {
+      setMeetingData(meeting.data);
+    }
   };
 
   useEffect(() => {
-    handleGetMeetings();
+    handleGetMeeting();
   }, []);
 
   const handleChangeVotingDateTime = (date: Date | null) => {
@@ -136,22 +166,25 @@ const ScheduleMeeting = () => {
     );
   };
 
-  const handleConfirmSchedule = async () => {
+  const handleEdit = async () => {
     try {
-      const response = await api.post("api/meeting/new", {
-        title,
-        description,
-        timeSlots: convertToDateTimeStart(markedSlots),
-        duration: convertToSeconds(durationHours, durationMinutes),
-        organizer: {
-          name: organizerName,
-          email: organizerEmail,
-        },
-        votingDeadline: votingDeadline
-          ? votingDeadline.toISOString().split("T")[0] + "T23:59:59.000Z"
-          : null,
-        participants: getParticipants(),
-      });
+      const response = await api.put(
+        `api/meeting/${meetingId}/${organizerToken}`,
+        {
+          title,
+          description,
+          timeSlots: convertToDateTimeStart(markedSlots),
+          duration: convertToSeconds(durationHours, durationMinutes),
+          organizer: {
+            name: organizerName,
+            email: organizerEmail,
+          },
+          votingDeadline: votingDeadline
+            ? votingDeadline.toISOString().split("T")[0] + "T23:59:59.000Z"
+            : null,
+          participants: getParticipants(),
+        }
+      );
 
       console.log("Meeting created successfully:", response.data);
     } catch (error) {
@@ -170,8 +203,10 @@ const ScheduleMeeting = () => {
           className='h-12 w-12 cursor-pointer'
           onClick={handleGoBack}
         />
-        <p className='text-2xl font-semibold text-center'>Schedule Meeting</p>
-        <div />
+        <p className='text-2xl font-semibold text-center'>Edit Meeting</p>
+        <Button style={{ backgroundColor: "#FC9593" }}>
+          Delete the meeting
+        </Button>
       </div>
       <div className='flex flex-col mt-[50px] border-0 items-start self-center w-[600px] py-4'>
         <p className='text-lg font-medium my-4'>Title</p>
@@ -332,12 +367,12 @@ const ScheduleMeeting = () => {
 
       <Button
         className='bg-primary w-[250px] mt-[50px] self-center'
-        onClick={handleConfirmSchedule}
+        onClick={handleEdit}
       >
-        Confirm Schedule
+        Submit the changes
       </Button>
     </div>
   );
 };
 
-export default ScheduleMeeting;
+export default EditMeeting;

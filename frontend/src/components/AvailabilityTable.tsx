@@ -1,15 +1,9 @@
-import React, { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import {
   MdArrowBackIos as MdArrowBack,
   MdArrowForwardIos as MdArrowForward,
 } from "react-icons/md";
-import {
-  format,
-  addDays,
-  startOfToday,
-  differenceInMinutes,
-  addWeeks,
-} from "date-fns";
+import { format, addDays, startOfToday, addWeeks } from "date-fns";
 import { MarkedSlot, SelectedSlot } from "@/pages/ScheduleMeeting";
 
 interface AvailabilityTableProps {
@@ -31,7 +25,7 @@ const AvailabilityTable: FC<AvailabilityTableProps> = ({
     if (isSelected) {
       return "bg-primary";
     } else if (markedSlot) {
-      return markedSlot.availabilityType === "available"
+      return markedSlot.availabilityType === "HIGH"
         ? "bg-secondary"
         : "bg-mainYellow";
     } else {

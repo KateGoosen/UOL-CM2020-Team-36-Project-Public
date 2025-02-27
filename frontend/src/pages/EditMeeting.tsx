@@ -171,23 +171,20 @@ const EditMeeting = () => {
 
   const handleEdit = async () => {
     try {
-      const response = await api.put(
-        `api/meeting/${meetingId}/${organizerToken}`,
-        {
-          title,
-          description,
-          timeSlots: convertToDateTimeStart(markedSlots),
-          duration: convertToSeconds(durationHours, durationMinutes),
-          organizer: {
-            name: organizerName,
-            email: organizerEmail,
-          },
-          votingDeadline: votingDeadline
-            ? votingDeadline.toISOString().split("T")[0] + "T23:59:59.000Z"
-            : null,
-          participants: getParticipants(),
-        }
-      );
+      await api.put(`api/meeting/${meetingId}/${organizerToken}`, {
+        title,
+        description,
+        timeSlots: convertToDateTimeStart(markedSlots),
+        duration: convertToSeconds(durationHours, durationMinutes),
+        organizer: {
+          name: organizerName,
+          email: organizerEmail,
+        },
+        votingDeadline: votingDeadline
+          ? votingDeadline.toISOString().split("T")[0] + "T23:59:59.000Z"
+          : null,
+        participants: getParticipants(),
+      });
       navigate(`/schedule-meeting/edit/success/${meetingId}/${organizerToken}`);
     } catch (error) {
       console.error(

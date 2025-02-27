@@ -34,3 +34,8 @@ export interface MarkedSlot {
   period: string;
   availabilityType: "HIGH" | "LOW";
 }
+
+export type TimeSlots = {
+  highPriorityTimeSlots: string[];
+  lowPriorityTimeSlots: string[]; 
+};

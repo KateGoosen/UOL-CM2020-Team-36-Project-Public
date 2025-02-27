@@ -188,8 +188,7 @@ const EditMeeting = () => {
           participants: getParticipants(),
         }
       );
-
-      console.log("Meeting created successfully:", response.data);
+      navigate(`/schedule-meeting/edit/success/${meetingId}/${organizerToken}`);
     } catch (error) {
       console.error(
         "Error creating meeting:",

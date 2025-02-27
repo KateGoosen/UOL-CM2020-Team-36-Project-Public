@@ -6,6 +6,8 @@ import EditMeeting from "./pages/EditMeeting";
 import MeetingCreationSuccess from "./pages/MeetingCreationSuccess";
 import VoteTimeSlots from "./pages/VoteTimeSlots";
 import VoteMeetingSuccess from "./pages/VoteMeetingSuccess";
+import FinalizeMeeting from "./pages/FinalizeMeeting";
+import MeetingFinalizeSuccess from "./pages/MeetingFinalizeSuccess";
 
 function App() {
   return (
@@ -33,6 +35,14 @@ function App() {
         <Route
           path='/meeting/:meetingId/success'
           element={<VoteMeetingSuccess />}
+        />
+        <Route
+          path='/meeting/:meetingId/:organizerToken'
+          element={<FinalizeMeeting />}
+        />
+        <Route
+          path='/meeting/:meetingId/:organizerToken/finalize'
+          element={<MeetingFinalizeSuccess />}
         />
       </Routes>
     </BrowserRouter>

@@ -126,6 +126,8 @@ const ScheduleMeeting = () => {
   };
 
   const handleConfirmSchedule = async () => {
+    console.log("Attempting to create meeting...", api);
+
     try {
       const response = await api.post("api/meeting/new", {
         title,
@@ -141,9 +143,6 @@ const ScheduleMeeting = () => {
           : null,
         participants: getParticipants(),
       });
-
-      console.log("response", response);
-
       navigate(
         `/schedule-meeting/success/${response.data.meetingId}/${response.data.organizerToken}`
       );

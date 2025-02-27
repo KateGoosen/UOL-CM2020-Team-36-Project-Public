@@ -1,5 +1,5 @@
 import { format, parseISO } from "date-fns";
-import { MarkedSlot, TimeSlot } from "./types";
+import { MarkedSlot, TimeSlot, TimeSlots } from "./types";
 
   export const convertToDateTimeStart = (availabilityList: MarkedSlot[]) => {
     return availabilityList.map((slot) => {
@@ -58,3 +58,47 @@ export const convertFromDateTimeStart = (timeSlots: TimeSlot[]) => {
   });
 };
 
+
+const isValidSlot = (slot: MarkedSlot): boolean => {
+  const isDayValid = /^\d{4}-\d{2}-\d{2}$/.test(slot.day);
+  const isHourValid = slot.hour >= 0 && slot.hour <= 12;
+  const isPeriodValid = ["am", "pm"].includes(slot.period.toLowerCase());
+  const isAvailabilityTypeValid = ["HIGH", "LOW"].includes(slot.availabilityType);
+
+  return isDayValid && isHourValid && isPeriodValid && isAvailabilityTypeValid;
+};
+
+export const convertSlotsToVote = (slots: MarkedSlot[]): TimeSlots => {
+   const highPriorityTimeSlots: string[] = [];
+  const lowPriorityTimeSlots: string[] = [];
+
+  slots.forEach((slot) => {
+    if (!isValidSlot(slot)) {
+      console.warn("Invalid slot:", slot);
+      return;
+    }
+    const date = new Date(slot.day);
+    let hour = slot.hour;
+    const period = slot.period.toLowerCase();
+
+    if (period === "pm" && hour < 12) {
+      hour += 12; 
+    } else if (period === "am" && hour === 12) {
+      hour = 0; 
+    }
+
+    date.setHours(hour, 0, 0, 0); 
+
+    if (slot.availabilityType === "HIGH") {
+      highPriorityTimeSlots.push(date.toISOString());
+    } else if (slot.availabilityType === "LOW") {
+      lowPriorityTimeSlots.push(date.toISOString());
+    }
+  });
+
+  return {
+    highPriorityTimeSlots,
+    lowPriorityTimeSlots,
+  };
+
+};

@@ -57,17 +57,6 @@ const ScheduleMeeting = () => {
   const [markedSlots, setMarkedSlots] = useState<MarkedSlot[]>([]);
   const [votingDeadline, setVotingDeadline] = useState<Date | null>(new Date());
 
-  const handleGetMeetings = async () => {
-    const meetings = await api.get(
-      "api/meeting/organizer/john.doe@example.com"
-    );
-    console.log("meetings", meetings);
-  };
-
-  useEffect(() => {
-    handleGetMeetings();
-  }, []);
-
   const handleChangeVotingDateTime = (date: Date | null) => {
     if (date) {
       setVotingDeadline(date);
@@ -153,7 +142,11 @@ const ScheduleMeeting = () => {
         participants: getParticipants(),
       });
 
-      console.log("Meeting created successfully:", response.data);
+      console.log("response", response);
+
+      navigate(
+        `/schedule-meeting/success/${response.data.meetingId}/${response.data.organizerToken}`
+      );
     } catch (error) {
       console.error(
         "Error creating meeting:",

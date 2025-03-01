@@ -1,8 +1,10 @@
 package com.team_36.cm2020.api_service.service;
 
+import com.team_36.cm2020.api_service.entities.Meeting;
 import com.team_36.cm2020.api_service.input.FinalizeMeetingInput;
 import com.team_36.cm2020.api_service.input.NewMeeting;
 import com.team_36.cm2020.api_service.input.VoteInput;
+import com.team_36.cm2020.api_service.output.CommonTimeSlotsResponse;
 import com.team_36.cm2020.api_service.output.CreateMeetingResponse;
 import com.team_36.cm2020.api_service.output.GetMeetingForOrganizerResponse;
 import com.team_36.cm2020.api_service.output.MeetingDataForOrganizerResponse;
@@ -61,8 +63,9 @@ public interface MeetingService {
      *
      * @param meetingId meeting ID
      * @param voteInput {@link VoteInput}
+     * @return {@link com.team_36.cm2020.api_service.entities.Meeting}
      */
-    void vote(UUID meetingId, VoteInput voteInput);
+    Meeting vote(UUID meetingId, VoteInput voteInput);
 
     /**
      * Get all available meetings by email (for participants)
@@ -91,8 +94,21 @@ public interface MeetingService {
      * View the meeting's details (for participant)
      *
      * @param meetingId meeting ID
-     * @param userEmail user email
+     * @param userEmail user e-mail
      * @return {@link MeetingDataForParticipantResponse}
      */
     MeetingDataForParticipantResponse viewMeetingDetailsByParticipant(UUID meetingId, String userEmail);
+
+    /**
+     * Find all meetings with expired voting deadline.
+     *
+     * @return list of {@link com.team_36.cm2020.api_service.entities.Meeting}
+     */
+    List<Meeting> findMeetingsWithExpiredVotingDeadline();
+
+    void checkOrganizerToken(UUID organizerToken, Meeting meeting);
+    Meeting getMeetingIfExistsById(UUID meetingId);
+    Meeting saveMeeting(Meeting meeting);
+    void checkIfEveryoneVoted(Meeting meeting);
+    List<Meeting> findMeetingsWhereEveryoneVoted();
 }

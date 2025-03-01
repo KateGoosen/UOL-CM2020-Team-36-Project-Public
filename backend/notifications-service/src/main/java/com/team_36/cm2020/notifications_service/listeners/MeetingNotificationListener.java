@@ -20,9 +20,20 @@ public class MeetingNotificationListener {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final DateTimeFormatter customDateTimeFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy. HH:mm"); //TODO handle time zones!
 
+    @RabbitListener(queues = "common_time_slots_found_organizer")
+    public void receiveCommonTimeSlotsFoundOrganizerMessage(MessageDto message) {
+        String emailText = String.format("Dear %s,\n\nVoting for the meeting %s has been finished.\n\nPlease, proceed to choose a final date and time for your meeting:\nhttps://localhost:5173/%s/%s/%s",
+                message.getUserName(),
+                message.getMeetingTitle(),
+                message.getMeetingId(),
+                message.getUserId(),
+                message.getOrganizerToken());
+        sendEmailAndWriteLog(message, emailText, "Voting finished");
+    }
+
     @RabbitListener(queues = "meeting_created_organizer")
     public void receiveMeetingCreatedOrganizerMessage(MessageDto message) {
-        String emailText = String.format("Dear %s,\n\nA new meeting %s has been successfully created.\n\nPlease, save the link for further meeting management:\nhttps://example.com/%s/%s/%s",
+        String emailText = String.format("Dear %s,\n\nA new meeting %s has been successfully created.\n\nPlease, save the link for further meeting management:\nhttps://localhost:5173/edit/%s/%s/%s",
                 message.getUserName(),
                 message.getMeetingTitle(),
                 message.getMeetingId(),
@@ -33,7 +44,7 @@ public class MeetingNotificationListener {
 
     @RabbitListener(queues = "meeting_created_participants")
     public void receiveMeetingCreatedParticipantsMessage(MessageDto message) {
-        String emailText = String.format("Dear %s,\n\nA new meeting %s has been successfully created.\n\nPlease, proceed to vote for a suitable time slot:\nhttps://example.com/%s/%s/vote",
+        String emailText = String.format("Dear %s,\n\nA new meeting %s has been successfully created.\n\nPlease, proceed to vote for a suitable time slot:\nhttps://localhost:5173/%s/%s/vote",
                 message.getUserName(),
                 message.getMeetingTitle(),
                 message.getMeetingId(),
@@ -43,7 +54,7 @@ public class MeetingNotificationListener {
 
     @RabbitListener(queues = "vote_registered_organizer")
     public void receiveVoteRegisteredOrganizerMessage(MessageDto message) {
-        String emailText = String.format("Dear %s,\n\nA new vote for the meeting %s has been registered.\n\nYou can view the vote statistics and manage the meeting here:\nhttps://example.com/%s/%s/%s",
+        String emailText = String.format("Dear %s,\n\nA new vote for the meeting %s has been registered.\n\nYou can view the vote statistics and manage the meeting here:\nhttps://localhost:5173/edit/%s/%s/%s",
                 message.getUserName(),
                 message.getMeetingTitle(),
                 message.getMeetingId(),
@@ -54,7 +65,7 @@ public class MeetingNotificationListener {
 
     @RabbitListener(queues = "vote_registered_participant")
     public void receiveVoteRegisteredParticipantMessage(MessageDto message) {
-        String emailText = String.format("Dear %s,\n\nYour vote for the meeting %s has been successfully registered.\n\nYou can view the meeting’s details here:\nhttps://example.com/%s",
+        String emailText = String.format("Dear %s,\n\nYour vote for the meeting %s has been successfully registered.\n\nYou can view the meeting’s details here:\nhttps://localhost:5173/%s",
                 message.getUserName(),
                 message.getMeetingTitle(),
                 message.getMeetingId());
@@ -63,7 +74,7 @@ public class MeetingNotificationListener {
 
     @RabbitListener(queues = "meeting_finalized_organizer")
     public void receiveMeetingFinalizedOrganizerMessage(MessageDto message) {
-        String emailText = String.format("Dear %s,\n\nThe final time for the meeting %s has been finalized. The date and time for your meeting is set for: %s.\n\nPlease, save the link for further meeting management:\nhttps://example.com/%s/%s/%s",
+        String emailText = String.format("Dear %s,\n\nThe final time for the meeting %s has been finalized. The date and time for your meeting is set for: %s.\n\nPlease, save the link for further meeting management:\nhttps://localhost:5173/edit/%s/%s/%s",
                 message.getUserName(),
                 message.getMeetingTitle(),
                 message.getMeetingDateTime().format(customDateTimeFormatter),
@@ -75,7 +86,7 @@ public class MeetingNotificationListener {
 
     @RabbitListener(queues = "meeting_no_slots_organizer")
     public void receiveMeetingNoSlotsOrganizerMessage(MessageDto message) {
-        String emailText = String.format("Dear %s,\n\nUnfortunately, no suitable time slot for the meeting %s has been found. Please, add more suitable time slots for the meeting:\nhttps://example.com/%s/%s/%s",
+        String emailText = String.format("Dear %s,\n\nUnfortunately, no suitable time slot for the meeting %s has been found. Please, add more suitable time slots for the meeting:\nhttps://localhost:5173/%s/%s/%s",
                 message.getUserName(),
                 message.getMeetingTitle(),
                 message.getMeetingId(),
@@ -86,7 +97,7 @@ public class MeetingNotificationListener {
 
     @RabbitListener(queues = "meeting_no_slots_participants")
     public void receiveMeetingNoSlotsParticipantsMessage(MessageDto message) {
-        String emailText = String.format("Dear %s,\n\nThe organizer for the meeting %s has added more time slots for voting. Please, proceed here:\nhttps://example.com/%s/%s/vote",
+        String emailText = String.format("Dear %s,\n\nThe organizer for the meeting %s has added more time slots for voting. Please, proceed here:\nhttps://localhost:5173/%s/%s/vote",
                 message.getUserName(),
                 message.getMeetingTitle(),
                 message.getMeetingId(),
@@ -96,7 +107,7 @@ public class MeetingNotificationListener {
 
     @RabbitListener(queues = "meeting_finalized_participants")
     public void receiveMeetingFinalizedParticipantsMessage(MessageDto message) {
-        String emailText = String.format("Dear %s,\n\nThe final time for the meeting %s has been finalized. The date and time for the meeting is set for: %s.\n\nYou can view the meeting’s details here:\nhttps://example.com/%s",
+        String emailText = String.format("Dear %s,\n\nThe final time for the meeting %s has been finalized. The date and time for the meeting is set for: %s.\n\nYou can view the meeting’s details here:\nhttps://localhost:5173/%s",
                 message.getUserName(),
                 message.getMeetingTitle(),
                 message.getMeetingDateTime().format(customDateTimeFormatter),
@@ -106,7 +117,7 @@ public class MeetingNotificationListener {
 
     @RabbitListener(queues = "link_restore_organizer")
     public void receiveLinkRestoreOrganizerMessage(MessageDto message) {
-        String emailText = String.format("Dear %s,\n\nYour link for further meeting management \nhttps://example.com/%s/%s/%s",
+        String emailText = String.format("Dear %s,\n\nYour link for further meeting management \nhttps://localhost:5173/edit/%s/%s/%s",
                 message.getUserName(),
                 message.getMeetingId(),
                 message.getUserId(),

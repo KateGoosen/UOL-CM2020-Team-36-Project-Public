@@ -33,6 +33,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
+    @ExceptionHandler(CommonTimeSlotsNotYetCalculatedException.class)
+    public ResponseEntity<String> handleCommonTimeSlotsNotYetCalculatedException(CommonTimeSlotsNotYetCalculatedException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
     @ExceptionHandler(ParticipantAlreadyVotedException.class)
     public ResponseEntity<String> handleParticipantAlreadyVotedException(ParticipantAlreadyVotedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());

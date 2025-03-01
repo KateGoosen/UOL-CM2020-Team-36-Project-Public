@@ -1,14 +1,12 @@
 package com.team_36.cm2020.api_service.entities;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 import com.team_36.cm2020.api_service.enums.Priority;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -17,34 +15,37 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
-@Getter
 @Builder
-@Setter
-@Table(name = "votes", schema = "scheduler")
-@NoArgsConstructor
 @AllArgsConstructor
-public class Vote {
+@NoArgsConstructor
+@Getter
+@Table(name = "common_time_slots", schema = "scheduler")
+public class CommonTimeSlot {
+
     @Id
     @GeneratedValue
-    private UUID voteId;
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "meeting_id", nullable = false)
     private Meeting meeting;
 
-    @Column(nullable = false)
+    @Column(name = "date_time_start", nullable = false)
     private LocalDateTime dateTimeStart;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Priority priority;
+    @Column(name = "organizer_priority", nullable = false)
+    private Priority organizerPriority;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "high_priority_votes_count", nullable = false)
+    private Integer highPriorityVotesCount = 0;
 
-
+    @Column(name = "low_priority_votes_count", nullable = false)
+    private Integer lowPriorityVotesCount = 0;
 }
+

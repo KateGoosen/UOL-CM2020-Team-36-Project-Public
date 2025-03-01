@@ -124,7 +124,7 @@ public class MeetingController {
     }
 
     @Operation(summary = "Get common time slots")
-    @GetMapping("/meeting/common_time_slots/{meeting_id}/{user_email}/{organizer_token}")
+    @GetMapping("/common_time_slots/{meeting_id}/{user_email}/{organizer_token}")
     public ResponseEntity<CommonTimeSlotsResponse> getCommonTimeSlots(
             @PathVariable(name = "meeting_id") UUID meetingId,
             @PathVariable(name = "user_email") String userEmail,

@@ -1,5 +1,6 @@
 package com.team_36.cm2020.api_service.controllers;
 
+import com.team_36.cm2020.api_service.entities.Meeting;
 import com.team_36.cm2020.api_service.input.FinalizeMeetingInput;
 import com.team_36.cm2020.api_service.input.NewMeeting;
 import com.team_36.cm2020.api_service.input.VoteInput;
@@ -85,7 +86,8 @@ public class MeetingController {
     @PostMapping("/{meeting_id}/vote")
     public ResponseEntity<Void> vote(@PathVariable(name = "meeting_id") UUID meetingId,
                                      @RequestBody VoteInput voteInput) {
-        meetingService.vote(meetingId, voteInput);
+        Meeting meeting = meetingService.vote(meetingId, voteInput);
+        meetingService.checkIfEveryoneVoted(meeting);
         return ResponseEntity.ok().build();
     }
 

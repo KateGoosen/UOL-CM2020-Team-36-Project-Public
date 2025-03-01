@@ -24,10 +24,8 @@ import com.team_36.cm2020.api_service.output.MeetingDataForParticipantResponse;
 import com.team_36.cm2020.api_service.output.OrganizerResponse;
 import com.team_36.cm2020.api_service.output.ParticipantResponse;
 import com.team_36.cm2020.api_service.output.TimeSlotResponse;
-import com.team_36.cm2020.api_service.repositories.CommonTimeSlotRepository;
 import com.team_36.cm2020.api_service.repositories.MeetingParticipantRepository;
 import com.team_36.cm2020.api_service.repositories.MeetingRepository;
-import com.team_36.cm2020.api_service.repositories.TimeSlotRepository;
 import com.team_36.cm2020.api_service.repositories.VoteRepository;
 import com.team_36.cm2020.api_service.rmq.NotificationMessage;
 import com.team_36.cm2020.api_service.service.MeetingService;
@@ -228,7 +226,7 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     @Transactional
-    public void vote(UUID meetingId, VoteInput voteInput) {
+    public Meeting vote(UUID meetingId, VoteInput voteInput) {
         Meeting meeting = getMeetingIfExistsById(meetingId);
 
         if (!meeting.getIsVotingOpened()) {
@@ -259,6 +257,7 @@ public class MeetingServiceImpl implements MeetingService {
         this.notificationService.sendNotificationVoteRegisteredParticipant(
                 new NotificationMessage(user, meeting, UserType.PARTICIPANT, Optional.empty()));
 
+        return meeting;
     }
 
     @Override
@@ -332,7 +331,7 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     public List<Meeting> findMeetingsWithExpiredVotingDeadline() {
-        return this.meetingRepository.findAllByVotingDeadlineLessThan(LocalDateTime.now());
+        return this.meetingRepository.findAllByVotingDeadlineLessThanAndFinalTimeSlotIsNullAndCommonTimeSlotsCalculatedIsFalse(LocalDateTime.now());
     }
 
     private Set<Vote> createVotes(List<LocalDateTime> timeSlots,
@@ -360,6 +359,24 @@ public class MeetingServiceImpl implements MeetingService {
                     String.format("No meeting with id: %s has been found", meetingId.toString()));
         }
         return meetingOptional.get();
+    }
+
+    public Meeting saveMeeting(Meeting meeting) {
+        return this.meetingRepository.save(meeting);
+    }
+
+    @Override
+    public void checkIfEveryoneVoted(Meeting meeting) {
+        log.debug("Checking if everyone voted for the meeting time, meeting id: {}", meeting.getMeetingId());
+        boolean everyoneVoted = this.meetingRepository.haveAllParticipantsVoted(meeting.getMeetingId());
+        if (everyoneVoted) {
+            meeting.setIfEveryoneVoted(true);
+        }
+    }
+
+    @Override
+    public List<Meeting> findMeetingsWhereEveryoneVoted() {
+        return this.meetingRepository.findAllByIfEveryoneVotedIsTrue();
     }
 
     public void checkOrganizerToken(UUID organizerToken, Meeting meeting) {

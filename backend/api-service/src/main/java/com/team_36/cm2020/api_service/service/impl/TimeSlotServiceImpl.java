@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -49,6 +50,7 @@ public class TimeSlotServiceImpl implements TimeSlotService {
     private final MeetingService meetingService;
 
     @Override
+    @Transactional
     public void findSuitableTimeSlots(Meeting meeting) {
         List<List<LocalDateTime>> allTimeSlots = new ArrayList<>();
         Map<LocalDateTime, Map<Priority, Integer>> participantTimeSlotsWithPrioritiesCount = new HashMap<>();
@@ -78,11 +80,17 @@ public class TimeSlotServiceImpl implements TimeSlotService {
                         .dateTimeStart(slot)
                         .meeting(meeting)
                         .organizerPriority(organizerTimeSlotsWithPriorities.get(slot))
-                        .lowPriorityVotesCount(participantTimeSlotsWithPrioritiesCount.get(slot).get(Priority.LOW))
-                        .highPriorityVotesCount(participantTimeSlotsWithPrioritiesCount.get(slot).get(Priority.HIGH))
+                        .lowPriorityVotesCount(Objects.isNull(participantTimeSlotsWithPrioritiesCount.get(slot))
+                                ?  0
+                                : Objects.isNull(participantTimeSlotsWithPrioritiesCount.get(slot).get(Priority.LOW)) ? 0 : participantTimeSlotsWithPrioritiesCount.get(slot).get(Priority.LOW))
+                        .highPriorityVotesCount(Objects.isNull(participantTimeSlotsWithPrioritiesCount.get(slot))
+                                ?  0
+                                : Objects.isNull(participantTimeSlotsWithPrioritiesCount.get(slot).get(Priority.HIGH)) ? 0 : participantTimeSlotsWithPrioritiesCount.get(slot).get(Priority.HIGH))
                         .build())
                 .toList();
         commonTimeSlotRepository.saveAll(commonTimeSlotList);
+        meeting.setCommonTimeSlotsCalculated(true);
+        this.meetingService.saveMeeting(meeting);
 
         notificationService.sendNotificationCommonTimeSlotsFoundOrganizer(new NotificationMessage(
                 meeting.getOrganizer(),

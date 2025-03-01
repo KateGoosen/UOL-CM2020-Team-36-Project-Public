@@ -43,9 +43,9 @@ public class CommonTimeSlot {
     private Priority organizerPriority;
 
     @Column(name = "high_priority_votes_count", nullable = false)
-    private int highPriorityVotesCount = 0;
+    private Integer highPriorityVotesCount = 0;
 
     @Column(name = "low_priority_votes_count", nullable = false)
-    private int lowPriorityVotesCount = 0;
+    private Integer lowPriorityVotesCount = 0;
 }
 

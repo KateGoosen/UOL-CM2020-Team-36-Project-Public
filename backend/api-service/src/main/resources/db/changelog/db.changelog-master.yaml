@@ -15,4 +15,11 @@ databaseChangeLog:
         - sqlFile:
             path: classpath:/db/migration/V4_Create_Table_Common_Time_Slots.sql
             relativeToChangelogFile: false
+  - changeSet:
+      id: 2
+      author: Ekaterina Goosen
+      changes:
+        - sqlFile:
+            path: classpath:/db/migration/V5_Alter_Meeting_Table.sql
+            relativeToChangelogFile: false
 

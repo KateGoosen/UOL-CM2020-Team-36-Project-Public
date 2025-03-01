@@ -24,8 +24,10 @@ public class CheckVotingDeadlines {
         log.debug("Check voting deadlines executed at: {}", LocalTime.now());
 
         List<Meeting> meetings = meetingService.findMeetingsWithExpiredVotingDeadline();
+        List<Meeting> meetingsEveryoneVoted = meetingService.findMeetingsWhereEveryoneVoted();
+        meetings.addAll(meetingsEveryoneVoted);
         for (Meeting meeting : meetings) {
-            log.debug("start finding common time slots for meeting with id: {}", meeting.getMeetingId());
+            log.info("start finding common time slots for meeting with id: {}", meeting.getMeetingId());
             timeSlotService.findSuitableTimeSlots(meeting);
         }
     }

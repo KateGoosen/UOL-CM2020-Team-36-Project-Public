@@ -63,8 +63,9 @@ public interface MeetingService {
      *
      * @param meetingId meeting ID
      * @param voteInput {@link VoteInput}
+     * @return {@link com.team_36.cm2020.api_service.entities.Meeting}
      */
-    void vote(UUID meetingId, VoteInput voteInput);
+    Meeting vote(UUID meetingId, VoteInput voteInput);
 
     /**
      * Get all available meetings by email (for participants)
@@ -107,4 +108,7 @@ public interface MeetingService {
 
     void checkOrganizerToken(UUID organizerToken, Meeting meeting);
     Meeting getMeetingIfExistsById(UUID meetingId);
+    Meeting saveMeeting(Meeting meeting);
+    void checkIfEveryoneVoted(Meeting meeting);
+    List<Meeting> findMeetingsWhereEveryoneVoted();
 }

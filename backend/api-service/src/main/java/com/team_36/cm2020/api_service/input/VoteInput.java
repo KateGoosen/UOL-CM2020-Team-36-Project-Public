@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ import java.util.List;
 @Data
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class VoteInput {
 
     @NotBlank(message = "User email should not be empty")

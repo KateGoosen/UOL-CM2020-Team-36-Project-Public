@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Builder
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class GetMeetingForOrganizerResponse {
 
     private String title;

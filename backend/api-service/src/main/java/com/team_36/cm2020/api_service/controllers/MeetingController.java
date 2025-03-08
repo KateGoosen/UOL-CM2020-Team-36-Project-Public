@@ -12,8 +12,14 @@ import com.team_36.cm2020.api_service.output.MeetingDataForParticipantResponse;
 import com.team_36.cm2020.api_service.service.MeetingService;
 import com.team_36.cm2020.api_service.service.TimeSlotService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -41,8 +47,16 @@ public class MeetingController {
     private final TimeSlotService timeSlotService;
 
     @Operation(summary = "Create a meeting")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Meeting created successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CreateMeetingResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request body or missing required fields"),
+            @ApiResponse(responseCode = "404", description = "Meeting service unavailable or resource not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PostMapping("/new")
-    public ResponseEntity<CreateMeetingResponse> createMeeting(@RequestBody NewMeeting meetingData) {
+    public ResponseEntity<CreateMeetingResponse> createMeeting(@RequestBody @Valid NewMeeting meetingData) {
         CreateMeetingResponse response = meetingService.createMeeting(meetingData);
         return ResponseEntity.ok().body(response);
     }
@@ -57,6 +71,13 @@ public class MeetingController {
     }
 
     @Operation(summary = "Edit the meeting (organizer)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Meeting updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body or missing required fields"),
+            @ApiResponse(responseCode = "403", description = "Invalid organizer token or unauthorized access"),
+            @ApiResponse(responseCode = "404", description = "Meeting not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PutMapping("/{meeting_id}/{organizer_token}")
     public ResponseEntity<Void> editMeeting(@PathVariable(name = "meeting_id") UUID meetingId,
                                             @PathVariable(name = "organizer_token") UUID organizerToken,
@@ -74,18 +95,34 @@ public class MeetingController {
     }
 
     @Operation(summary = "Finalize the meeting (organizer)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Meeting finalized successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body or missing required fields"),
+            @ApiResponse(responseCode = "403", description = "Invalid organizer token or unauthorized access"),
+            @ApiResponse(responseCode = "404", description = "Meeting not found"),
+            @ApiResponse(responseCode = "409", description = "Meeting already finalized"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PutMapping("/{meeting_id}/{organizer_token}/finalize")
     public ResponseEntity<Void> finalizeMeeting(@PathVariable(name = "meeting_id") UUID meetingId,
                                                 @PathVariable(name = "organizer_token") UUID organizerToken,
-                                                @RequestBody FinalizeMeetingInput finalizeMeetingInput) {
+                                                @RequestBody @Valid FinalizeMeetingInput finalizeMeetingInput) {
         meetingService.finalizeMeeting(meetingId, organizerToken, finalizeMeetingInput);
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Vote for the time slots (participants)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Vote recorded successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body or missing required fields"),
+            @ApiResponse(responseCode = "403", description = "User is not authorized to vote in this meeting"),
+            @ApiResponse(responseCode = "404", description = "Meeting not found"),
+            @ApiResponse(responseCode = "409", description = "Voting is already closed for this meeting"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PostMapping("/{meeting_id}/vote")
     public ResponseEntity<Void> vote(@PathVariable(name = "meeting_id") UUID meetingId,
-                                     @RequestBody VoteInput voteInput) {
+                                     @RequestBody @Valid VoteInput voteInput) {
         Meeting meeting = meetingService.vote(meetingId, voteInput);
         meetingService.checkIfEveryoneVoted(meeting);
         return ResponseEntity.ok().build();
@@ -94,12 +131,20 @@ public class MeetingController {
     @Operation(summary = "Get meetings by user's email (participant)")
     @GetMapping("/{user_email}")
     public ResponseEntity<Set<MeetingDataForParticipantResponse>> getMeetingsByEmail(
-            @PathVariable(name = "user_email") String userEmail) {
+            @PathVariable(name = "user_email") @Email String userEmail) {
         Set<MeetingDataForParticipantResponse> response = meetingService.getMeetingsByEmail(userEmail);
         return ResponseEntity.ok().body(response);
     }
 
     @Operation(summary = "Get meetings by user's email (organizer)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "List of meetings retrieved successfully",
+                    content = @Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = MeetingDataForOrganizerResponse.class)))),
+            @ApiResponse(responseCode = "400", description = "Invalid email format"),
+            @ApiResponse(responseCode = "404", description = "No meetings found for the given email"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/organizer/{user_email}")
     public ResponseEntity<List<MeetingDataForOrganizerResponse>> getOrganizedMeetingsByEmail(
             @PathVariable(name = "user_email") String userEmail) {
@@ -124,6 +169,15 @@ public class MeetingController {
     }
 
     @Operation(summary = "Get common time slots")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Common time slots retrieved successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonTimeSlotsResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
+            @ApiResponse(responseCode = "403", description = "Unauthorized access: Invalid organizer token"),
+            @ApiResponse(responseCode = "404", description = "Meeting not found or no common time slots available"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/common_time_slots/{meeting_id}/{user_email}/{organizer_token}")
     public ResponseEntity<CommonTimeSlotsResponse> getCommonTimeSlots(
             @PathVariable(name = "meeting_id") UUID meetingId,

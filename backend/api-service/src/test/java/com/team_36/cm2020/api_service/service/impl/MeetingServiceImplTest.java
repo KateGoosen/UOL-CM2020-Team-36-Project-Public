@@ -24,6 +24,9 @@ import com.team_36.cm2020.api_service.rmq.NotificationMessage;
 import com.team_36.cm2020.api_service.service.NotificationService;
 import com.team_36.cm2020.api_service.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -51,6 +54,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @ExtendWith(MockitoExtension.class)
 class MeetingServiceImplTest {
 
@@ -108,6 +112,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Create Meeting Successfully")
     @Transactional
     void testCreateMeeting_Success() {
         // Mock dependencies
@@ -130,12 +135,14 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Create Meeting - User Not Found")
     void testCreateMeeting_UserNotFound() {
         when(userService.getUserOptionalByEmail(organizer.getEmail())).thenReturn(Optional.empty());
         assertThrows(RuntimeException.class, () -> meetingService.createMeeting(meetingData));
     }
 
     @Test
+    @DisplayName("Test: Get Meeting for Organizer Successfully")
     @Transactional
     void testGetMeetingForOrganizer_Success() {
         UUID meetingId = UUID.randomUUID();
@@ -178,6 +185,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Get Meeting for Organizer - Not Found")
     void testGetMeetingForOrganizer_NotFound() {
         UUID meetingId = UUID.randomUUID();
         UUID organizerToken = UUID.randomUUID();
@@ -188,6 +196,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Edit Meeting Successfully")
     @Transactional
     void testEditMeeting_Success() {
         UUID meetingId = UUID.randomUUID();
@@ -206,6 +215,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Edit Meeting - Not Found")
     void testEditMeeting_NotFound() {
         UUID meetingId = UUID.randomUUID();
         UUID organizerToken = UUID.randomUUID();
@@ -216,6 +226,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Delete Meeting Successfully")
     @Transactional
     void testDeleteMeeting_Success() {
         UUID meetingId = UUID.randomUUID();
@@ -234,6 +245,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Delete Meeting - Not Found")
     void testDeleteMeeting_NotFound() {
         UUID meetingId = UUID.randomUUID();
         UUID organizerToken = UUID.randomUUID();
@@ -244,6 +256,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Finalize Meeting Successfully")
     @Transactional
     void testFinalizeMeeting_Success() {
         UUID meetingId = UUID.randomUUID();
@@ -265,6 +278,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Finalize Meeting - Not Found")
     void testFinalizeMeeting_NotFound() {
         UUID meetingId = UUID.randomUUID();
         UUID organizerToken = UUID.randomUUID();
@@ -276,6 +290,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Vote Successfully")
     @Transactional
     void testVote_Success() {
         UUID meetingId = UUID.randomUUID();
@@ -299,6 +314,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Vote - Meeting Not Found")
     void testVote_MeetingNotFound() {
         UUID meetingId = UUID.randomUUID();
         VoteInput voteInput = new VoteInput(participantEmail, List.of(LocalDateTime.now()), List.of(LocalDateTime.now()));
@@ -309,6 +325,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Vote - Voting Is Closed")
     void testVote_VotingClosed() {
         UUID meetingId = UUID.randomUUID();
         VoteInput voteInput = new VoteInput(participantEmail, List.of(LocalDateTime.now()), List.of(LocalDateTime.now()));
@@ -322,6 +339,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Get Meetings by Email")
     void testGetMeetingsByEmail_Success() {
         when(userService.getUserByEmail(participantEmail)).thenReturn(participant);
         when(meetingParticipantRepository.findAllByUser(participant)).thenReturn(Collections.emptyList());
@@ -333,6 +351,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Restore Edit Link Successfully")
     void testRestoreEditLink_Success() {
         UUID meetingId = UUID.randomUUID();
         meeting.setMeetingId(meetingId);
@@ -346,6 +365,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Restore Edit Link - Not Found")
     void testRestoreEditLink_NotFound() {
         UUID meetingId = UUID.randomUUID();
         when(meetingRepository.findById(meetingId)).thenReturn(Optional.empty());
@@ -353,6 +373,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: View Meeting Details by Participant Successfully")
     void testViewMeetingDetailsByParticipant_Success() {
         UUID meetingId = UUID.randomUUID();
         meeting.setMeetingId(meetingId);
@@ -370,6 +391,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: View Meeting Details by Participant - Access Denied (not a participant of that meeting)")
     void testViewMeetingDetailsByParticipant_NotParticipant() {
         UUID meetingId = UUID.randomUUID();
         String userEmail = "notparticipant@example.com";
@@ -387,6 +409,7 @@ class MeetingServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test: Get Organized Meeting By Email Successfully")
     void testGetOrganizedMeetingsByEmail() {
         Meeting mockMeeting1 = Meeting.builder()
                 .title("Title 1")
